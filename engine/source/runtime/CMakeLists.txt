@@ -14,10 +14,10 @@ file(GLOB_RECURSE RUNTIME_SOURCES CONFIGURE_DEPENDS "*.cpp")
 add_library(${TARGET_NAME} ${RUNTIME_HEADERS} ${RUNTIME_SOURCES})
 
 # # IDE标识
-# set_target_properties(${TARGET_NAME} PROPERTIES CXX_STANDARD 20)
+# set_target_properties(${TARGET_NAME} PROPERTIES CXX_STANDARD 17)
 # set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "Engine")
 
-# 将目录包含到对应目标里
+# 将目录包含到对应目标里，不写这句话可就找不到.h文件了
 target_include_directories(
     ${TARGET_NAME}
     PUBLIC $<BUILD_INTERFACE:${ENGINE_ROOT_DIR}/source>
