@@ -10,9 +10,8 @@ int main(int argc, char** argv)
     std::filesystem::path config_file_path = executable_path.parent_path();
 
     // 引擎创建
-    Piccolo::PiccoloEngine* engine =
-        new Piccolo::PiccoloEngine(config_file_path.generic_string()); // 通过config文件初始化引擎
-    engine->initialize();
+    Piccolo::PiccoloEngine* engine = new Piccolo::PiccoloEngine();
+    engine->initialize(config_file_path.generic_string()); // 通过config文件初始化引擎
 
     // 编辑器创建
     Piccolo::PiccoloEditor* editor = new Piccolo::PiccoloEditor();

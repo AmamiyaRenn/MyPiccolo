@@ -13,6 +13,9 @@ file(GLOB_RECURSE RUNTIME_SOURCES CONFIGURE_DEPENDS "*.cpp")
 # 作为库被构建
 add_library(${TARGET_NAME} ${RUNTIME_HEADERS} ${RUNTIME_SOURCES})
 
+# 链接库
+target_link_libraries(${TARGET_NAME} PUBLIC glfw) # PUBLIC: 在public后面的库会被Link到你的target中，并且里面的符号也会被导出，提供给第三方使用
+
 # # IDE标识
 # set_target_properties(${TARGET_NAME} PROPERTIES CXX_STANDARD 17)
 # set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "Engine")

@@ -1,6 +1,9 @@
-﻿#include <cassert>
+﻿#include "editor/include/editor_ui.h"
+#include "function/global/global_context.h"
+#include <cassert>
 
 #include "editor/include/editor.h"
+#include <memory>
 
 namespace Piccolo
 {
@@ -9,7 +12,21 @@ namespace Piccolo
     {
         assert(engine_runtime);                // 确保engine正确被初始化了
         this->engine_runtime = engine_runtime; // 绑定engine_runtime
+
+        editor_ui                     = std::make_shared<EditorUI>();
+        WindowUIInitInfo ui_init_info = {runtime_global_context.window_system};
+        editor_ui->initialize(ui_init_info);
     }
-    void PiccoloEditor::run() {}
+    void PiccoloEditor::run()
+    {
+        assert(engine_runtime);
+        assert(editor_ui);
+        while (true)
+        {
+            float delta_time = engine_runtime->calculateDeltaTime();
+            if (!engine_runtime->tickOneFrame(delta_time))
+                return;
+        }
+    }
     void PiccoloEditor::shutdown() {}
 } // namespace Piccolo
