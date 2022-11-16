@@ -1,11 +1,24 @@
-﻿## 说明
+﻿#! https://zhuanlan.zhihu.com/p/584113907
+![Image](https://w.wallhaven.cc/full/01/wallhaven-01322w.jpg)
 
-本系列是笔者学习王希老师的 GAMES104 现代游戏引擎入门课程时抄写 Piccolo 源码的笔记，由于笔者连科班计算机都不是，且基本不懂图形学(也就学过 101 与 learningOpenGL)，如有错误那就真是私密马赛
+# [Piccolo 引擎复刻笔记] 目录
+
+## 说明
+
+本系列是笔者学习王希老师的 GAMES104 现代游戏引擎入门课程时抄写 Piccolo 源码的笔记，由于笔者连科班计算机都不是，且基本不懂图形学(也就学过 101 与 learningOpenGL)，如有错误那请求各位大佬斧正
 “吾尝终日而思矣，不如须臾之所学也”，就本人过往的学习经验来看，学代码最好的方式就是抄一遍，此处抄写 Piccolo 代码的主要目的是提高对引擎的掌握程度与应用学过的图形学知识，顺带简单体验一下复杂工程的构建过程（写一个有几万行代码的工程也是宝贵的体验），再就是提高点 C++水平
-
-## 目标
-
 本系列最终目标是王希老师所言“完成 104 后，人手一个小引擎”“最后能做个多人网络对战游戏”
+笔者代码在[此处](https://github.com/AmamiyaRenn/MyPiccolo.git)，所有的系列文章都有对应的 git tag
+
+## 目录
+
+### 第一章 创世
+
+在这一章中，我们将基于 Piccolo 的框架，画出一个三角形
+
+[第一节 从 0 开始创造一个窗口](https://zhuanlan.zhihu.com/p/583024686)
+
+[第二节 Vulkan_RHI 初始化](https://zhuanlan.zhihu.com/p/583980556)
 
 ## 参考资料
 
@@ -15,9 +28,7 @@
 [虚幻 5 文档](https://docs.unrealengine.com/5.0/zh-CN/)
 [御币的 GAMES104 图形读码笔记](https://zhuanlan.zhihu.com/p/556305878)
 
-### 图形学
-
-#### 渲染
+### 渲染
 
 [GAMES101](https://www.bilibili.com/video/BV1X7411F744?p=1&vd_source=319cfc2457dab41418812a7cbf1411b8)
 
