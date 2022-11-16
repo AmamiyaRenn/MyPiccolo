@@ -5,7 +5,7 @@
 
 本系列是笔者学习王希老师的 GAMES104 现代游戏引擎入门课程时抄写 Piccolo 源码的笔记，由于笔者连科班计算机都不是，且基本不懂图形学(也就学过 101 与 learningOpenGL)，如有错误那就真是私密马赛
 本系列最终目标是王希老师所言“完成 104 后，人手一个小引擎”“最后能做个多人网络对战游戏”
-笔者代码在[此处](https://github.com/AmamiyaRenn/MyPiccolo.git)
+笔者代码在[此处](https://github.com/AmamiyaRenn/MyPiccolo/tree/v1.1)
 
 ## 程序入口
 

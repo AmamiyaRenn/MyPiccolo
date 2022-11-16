@@ -9,12 +9,25 @@
 
 ## 参考资料
 
+### 引擎
+
 [GAMES104](https://games104.boomingtech.com/)
-
 [虚幻 5 文档](https://docs.unrealengine.com/5.0/zh-CN/)
-
 [御币的 GAMES104 图形读码笔记](https://zhuanlan.zhihu.com/p/556305878)
 
+### 图形学
+
+#### 渲染
+
+[GAMES101](https://www.bilibili.com/video/BV1X7411F744?p=1&vd_source=319cfc2457dab41418812a7cbf1411b8)
+
+### 图形 API
+
 [LearningOpenGL CN](https://learnopengl-cn.github.io/)
+[vulkan-tutorial](https://vulkan-tutorial.com/)
+[vulkan 编程指南](https://github.com/fangcun010/VulkanTutorialCN/blob/master/Vulkan%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97.pdf)
+[vulkan-tutorial code](https://github.com/heitaoflower/vulkan-tutorial)
+
+### 计算机科学
 
 [C++设计模式入门](https://www.bilibili.com/video/BV1Yr4y157Ci/?share_source=copy_web&vd_source=78fca262a252b90390c3caa57c3e6f1b)
