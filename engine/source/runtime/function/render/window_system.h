@@ -1,6 +1,8 @@
 ﻿#pragma once
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+#include <array>
 
 namespace Piccolo
 {
@@ -16,10 +18,12 @@ namespace Piccolo
     {
     public:
         WindowSystem() = default;
-        void        initialize(WindowCreateInfo& create_info);
-        void        setTitle(const char* title) { glfwSetWindowTitle(window, title); }
-        static void pollEvents() { glfwPollEvents(); }
-        bool        shouldClose() const { return glfwWindowShouldClose(window); };
+        void               initialize(WindowCreateInfo& create_info);
+        void               setTitle(const char* title) { glfwSetWindowTitle(window, title); }
+        GLFWwindow*        getWindow() const { return window; }
+        std::array<int, 2> getWindowSize() const { return std::array<int, 2>({width, height}); }
+        static void        pollEvents() { glfwPollEvents(); }
+        bool               shouldClose() const { return glfwWindowShouldClose(window); };
 
     private:
         GLFWwindow* window = nullptr;
