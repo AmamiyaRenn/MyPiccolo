@@ -4,11 +4,15 @@ set(THIRD_PARTY_DIR "${ENGINE_ROOT_DIR}/3rdparty")
 # 设置vulkan选项
 set(vulkan_include ${THIRD_PARTY_DIR}/VulkanSDK/include)
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options("/MP") # enable parallel compilation
+    set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT PiccoloEditor)
+endif()
+
 if(WIN32) # 对于不同平台拥有不同设置
     set(vulkan_lib ${THIRD_PARTY_DIR}/VulkanSDK/lib/Win32/vulkan-1.lib)
-    set(glslangValidator_executable ${THIRD_PARTY_DIR}/VulkanSDK/bin/Win32/glslangValidator.exe)
+    set(glslangValidator_executable ${THIRD_PARTY_DIR}/VulkanSDK/bin/Win32/glslangValidator.exe) # 使用glslangValidator编译shader
     add_compile_definitions("PICCOLO_VK_LAYER_PATH=${THIRD_PARTY_DIR}/VulkanSDK/bin/Win32")
-    message(NOTICE "Use Win32 Vulkan")
 elseif(UNIX)
     if(APPLE)
         set(vulkan_lib ${THIRD_PARTY_DIR}/VulkanSDK/lib/MacOS/libvulkan.1.dylib)
@@ -23,6 +27,9 @@ elseif(UNIX)
 else()
     message(FATAL_ERROR "Unknown Platform")
 endif()
+
+set(SHADER_COMPILE_TARGET PiccoloShaderCompile)
+add_subdirectory(shader)
 
 add_subdirectory(3rdparty)
 
