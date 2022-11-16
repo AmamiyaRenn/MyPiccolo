@@ -7,9 +7,9 @@ namespace Piccolo
     void RenderSystem::initialize(RenderSystemInitInfo init_info)
     {
         RHIInitInfo rhi_init_info;
-        rhi_init_info.window_system = init_info.window_system;
+        rhi_init_info.m_window_system = init_info.m_window_system;
 
-        rhi = std::make_shared<VulkanRHI>();
-        rhi->initialize(rhi_init_info);
+        m_rhi = std::make_shared<VulkanRHI>();
+        m_rhi->initialize(rhi_init_info);
     }
 } // namespace Piccolo

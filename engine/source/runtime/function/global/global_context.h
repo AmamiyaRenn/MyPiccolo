@@ -15,8 +15,8 @@ namespace Piccolo
         // destroy all global systems
         void shutdownSystems();
 
-        std::shared_ptr<WindowSystem> window_system;
-        std::shared_ptr<RenderSystem> render_system;
+        std::shared_ptr<WindowSystem> m_window_system;
+        std::shared_ptr<RenderSystem> m_render_system;
     };
-    extern RuntimeGlobalContext runtime_global_context;
+    extern RuntimeGlobalContext g_runtime_global_context;
 } // namespace Piccolo

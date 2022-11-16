@@ -8,7 +8,7 @@ namespace Piccolo
 {
     struct RenderSystemInitInfo
     {
-        std::shared_ptr<WindowSystem> window_system;
+        std::shared_ptr<WindowSystem> m_window_system;
     };
 
     class RenderSystem
@@ -17,6 +17,6 @@ namespace Piccolo
         void initialize(RenderSystemInitInfo init_info);
 
     private:
-        std::shared_ptr<RHI> rhi;
+        std::shared_ptr<RHI> m_rhi;
     };
 } // namespace Piccolo

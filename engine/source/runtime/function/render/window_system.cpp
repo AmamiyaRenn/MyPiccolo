@@ -12,11 +12,11 @@ namespace Piccolo
             return;                                 // 失败后终止
         }
 
-        width  = create_info.width;
-        height = create_info.height;
+        m_width  = create_info.width;
+        m_height = create_info.height;
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // 不产生OpenGL上下文
-        if (!(window = glfwCreateWindow(width, height, create_info.title, nullptr, nullptr))) // 创建一个窗口对象
+        if (!(m_window = glfwCreateWindow(m_width, m_height, create_info.title, nullptr, nullptr))) // 创建一个窗口对象
         {
             LOG_FATAL("failed to create window");
             glfwTerminate();

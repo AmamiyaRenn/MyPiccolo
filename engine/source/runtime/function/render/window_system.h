@@ -19,15 +19,15 @@ namespace Piccolo
     public:
         WindowSystem() = default;
         void               initialize(WindowCreateInfo& create_info);
-        void               setTitle(const char* title) { glfwSetWindowTitle(window, title); }
-        GLFWwindow*        getWindow() const { return window; }
-        std::array<int, 2> getWindowSize() const { return std::array<int, 2>({width, height}); }
+        void               setTitle(const char* title) { glfwSetWindowTitle(m_window, title); }
+        GLFWwindow*        getWindow() const { return m_window; }
+        std::array<int, 2> getWindowSize() const { return std::array<int, 2>({m_width, m_height}); }
         static void        pollEvents() { glfwPollEvents(); }
-        bool               shouldClose() const { return glfwWindowShouldClose(window); };
+        bool               shouldClose() const { return glfwWindowShouldClose(m_window); };
 
     private:
-        GLFWwindow* window = nullptr;
-        int         width  = 0;
-        int         height = 0;
+        GLFWwindow* m_window = nullptr;
+        int         m_width  = 0;
+        int         m_height = 0;
     };
 } // namespace Piccolo
