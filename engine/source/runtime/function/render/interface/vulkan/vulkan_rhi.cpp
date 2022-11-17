@@ -1,5 +1,6 @@
 ﻿#include "function/render/render_type.h"
 #include "vulkan/vulkan_core.h"
+#include <stdint.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -41,6 +42,8 @@ namespace Piccolo
         createLogicDevice();
         createSwapchain();
         createSwapchainImageViews();
+        createCommandPool();
+        createCommandBuffers();
     }
 
     // 初始化Vulkan实例：设置应用名称、版本、拓展模块等
@@ -288,6 +291,50 @@ namespace Piccolo
         }
     }
 
+    // 创建命令池，用于管理命令缓存的内存
+    void VulkanRHI::createCommandPool()
+    {
+        // graphics command pool
+        { // TODO: implement
+            m_rhi_command_pool = new VulkanCommandPool();
+            VkCommandPoolCreateInfo command_pool_create_info {};
+            command_pool_create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            command_pool_create_info.pNext            = nullptr;
+            command_pool_create_info.flags            = 0; // we won't reset the command
+            command_pool_create_info.queueFamilyIndex = m_queue_indices.graphics_family.value();
+
+            for (auto& m_command_pool : m_command_pools)
+                if (vkCreateCommandPool(m_device, &command_pool_create_info, nullptr, &m_command_pool) != VK_SUCCESS)
+                    LOG_ERROR("Vulkan failed to create command pool");
+        }
+    }
+
+    // 创建命令缓冲
+    void VulkanRHI::createCommandBuffers()
+    {
+        // set the command buffer allocator information
+        VkCommandBufferAllocateInfo command_buffer_allocate_info {};
+        command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        // can be pushed to a queue to execute but can not be called from any other command
+        command_buffer_allocate_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        command_buffer_allocate_info.commandBufferCount = 1U;
+
+        // bind command buffer to command pool
+
+        // 下面的代码将会与piccolo有所出入
+        for (uint32_t i = 0; i < m_k_max_frames_in_flight; i++)
+        {
+            command_buffer_allocate_info.commandPool = m_command_pools[i];
+            VkCommandBuffer vk_command_buffer;
+            if (vkAllocateCommandBuffers(m_device, &command_buffer_allocate_info, &vk_command_buffer) != VK_SUCCESS)
+                LOG_ERROR("Vulkan failed to allocate command buffers!");
+            // command buffer resource binding
+            m_vk_command_buffers[i] = vk_command_buffer;
+            m_command_buffers[i]    = new VulkanCommandBuffer();
+            static_cast<VulkanCommandBuffer*>(m_command_buffers[i])->setResource(vk_command_buffer);
+        }
+    }
+
     // 检查是否所有被请求的层都可用
     bool VulkanRHI::checkValidationLayerSupport()
     {
@@ -520,19 +567,288 @@ namespace Piccolo
                                             uint32_t                             createInfoCount,
                                             const RHIGraphicsPipelineCreateInfo* pCreateInfo,
                                             RHIPipeline*&                        pPipelines)
-    { // TODO: implement
-        // int pipeline_shader_stage_create_info_size = pCreateInfo->stageCount;
-        // //
-        // 要使用着色器，我们需要通过VkPipelineShaderStageCreateInfo结构体把它们分配到图形渲染管线上的某一阶段，作为管线创建过程的一部分
-        // std::vector<VkPipelineShaderStageCreateInfo> vk_pipeline_shader_stage_create_info_list(
-        //     pipeline_shader_stage_create_info_size);
+    {
+        // convert shader
+        int                                          pipeline_shader_stage_create_info_size = pCreateInfo->stageCount;
+        std::vector<VkPipelineShaderStageCreateInfo> vk_pipeline_shader_stage_create_info_list(
+            pipeline_shader_stage_create_info_size);
 
+        for (int i = 0; i < pipeline_shader_stage_create_info_size; i++)
+        {
+            const auto& rhi_pipeline_shader_stage_create_info_element = pCreateInfo->pStages[i];
+            auto&       vk_pipeline_shader_stage_create_info_element  = vk_pipeline_shader_stage_create_info_list[i];
+
+            vk_pipeline_shader_stage_create_info_element.sType =
+                static_cast<VkStructureType>(rhi_pipeline_shader_stage_create_info_element.sType);
+            vk_pipeline_shader_stage_create_info_element.stage =
+                static_cast<VkShaderStageFlagBits>(rhi_pipeline_shader_stage_create_info_element.stage);
+            vk_pipeline_shader_stage_create_info_element.module =
+                static_cast<VulkanShader*>(rhi_pipeline_shader_stage_create_info_element.module)->getResource();
+            vk_pipeline_shader_stage_create_info_element.pName = rhi_pipeline_shader_stage_create_info_element.pName;
+        }
+
+        // convert vertex input
+        int vertex_input_binding_description_size = pCreateInfo->pVertexInputState->vertexBindingDescriptionCount;
+        std::vector<VkVertexInputBindingDescription> vk_vertex_input_binding_description_list(
+            vertex_input_binding_description_size);
+        for (int i = 0; i < vertex_input_binding_description_size; ++i)
+        {
+            const auto& rhi_vertex_input_binding_description_element =
+                pCreateInfo->pVertexInputState->pVertexBindingDescriptions[i];
+            auto& vk_vertex_input_binding_description_element = vk_vertex_input_binding_description_list[i];
+
+            vk_vertex_input_binding_description_element.binding = rhi_vertex_input_binding_description_element.binding;
+            vk_vertex_input_binding_description_element.stride  = rhi_vertex_input_binding_description_element.stride;
+            vk_vertex_input_binding_description_element.inputRate =
+                static_cast<VkVertexInputRate>(rhi_vertex_input_binding_description_element.inputRate);
+        };
+
+        // set aside
+        int vertex_input_attribute_description_size = pCreateInfo->pVertexInputState->vertexAttributeDescriptionCount;
+        std::vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_description_list(
+            vertex_input_attribute_description_size);
+        for (int i = 0; i < vertex_input_attribute_description_size; ++i)
+        {
+            const auto& rhi_vertex_input_attribute_description_element =
+                pCreateInfo->pVertexInputState->pVertexAttributeDescriptions[i];
+            auto& vk_vertex_input_attribute_description_element = vk_vertex_input_attribute_description_list[i];
+
+            vk_vertex_input_attribute_description_element.location =
+                rhi_vertex_input_attribute_description_element.location;
+            vk_vertex_input_attribute_description_element.binding =
+                rhi_vertex_input_attribute_description_element.binding;
+            vk_vertex_input_attribute_description_element.format =
+                static_cast<VkFormat>(rhi_vertex_input_attribute_description_element.format);
+            vk_vertex_input_attribute_description_element.offset =
+                rhi_vertex_input_attribute_description_element.offset;
+        };
+
+        // set aside
+        VkPipelineVertexInputStateCreateInfo vk_pipeline_vertex_input_state_create_info {};
+        vk_pipeline_vertex_input_state_create_info.sType =
+            static_cast<VkStructureType>(pCreateInfo->pVertexInputState->sType);
+        vk_pipeline_vertex_input_state_create_info.pNext = pCreateInfo->pVertexInputState->pNext;
+        vk_pipeline_vertex_input_state_create_info.flags =
+            static_cast<VkPipelineVertexInputStateCreateFlags>(pCreateInfo->pVertexInputState->flags);
+        vk_pipeline_vertex_input_state_create_info.vertexBindingDescriptionCount =
+            pCreateInfo->pVertexInputState->vertexBindingDescriptionCount;
+        vk_pipeline_vertex_input_state_create_info.pVertexBindingDescriptions =
+            vk_vertex_input_binding_description_list.data();
+        vk_pipeline_vertex_input_state_create_info.vertexAttributeDescriptionCount =
+            pCreateInfo->pVertexInputState->vertexAttributeDescriptionCount;
+        vk_pipeline_vertex_input_state_create_info.pVertexAttributeDescriptions =
+            vk_vertex_input_attribute_description_list.data();
+
+        VkPipelineInputAssemblyStateCreateInfo vk_pipeline_input_assembly_state_create_info {};
+        vk_pipeline_input_assembly_state_create_info.sType =
+            static_cast<VkStructureType>(pCreateInfo->pInputAssemblyState->sType);
+        vk_pipeline_input_assembly_state_create_info.pNext = pCreateInfo->pInputAssemblyState->pNext;
+        vk_pipeline_input_assembly_state_create_info.flags =
+            static_cast<VkPipelineInputAssemblyStateCreateFlags>(pCreateInfo->pInputAssemblyState->flags);
+        vk_pipeline_input_assembly_state_create_info.topology =
+            static_cast<VkPrimitiveTopology>(pCreateInfo->pInputAssemblyState->topology);
+        vk_pipeline_input_assembly_state_create_info.primitiveRestartEnable =
+            static_cast<VkBool32>(pCreateInfo->pInputAssemblyState->primitiveRestartEnable);
+
+        // viewport
+        int                     viewport_size = pCreateInfo->pViewportState->viewportCount;
+        std::vector<VkViewport> vk_viewport_list(viewport_size);
+        for (int i = 0; i < viewport_size; ++i)
+        {
+            const auto& rhi_viewport_element = pCreateInfo->pViewportState->pViewports[i];
+            auto&       vk_viewport_element  = vk_viewport_list[i];
+
+            vk_viewport_element.x        = rhi_viewport_element.x;
+            vk_viewport_element.y        = rhi_viewport_element.y;
+            vk_viewport_element.width    = rhi_viewport_element.width;
+            vk_viewport_element.height   = rhi_viewport_element.height;
+            vk_viewport_element.minDepth = rhi_viewport_element.minDepth;
+            vk_viewport_element.maxDepth = rhi_viewport_element.maxDepth;
+        };
+
+        // scissor
+        int                   rect_2d_size = pCreateInfo->pViewportState->scissorCount;
+        std::vector<VkRect2D> vk_rect_2d_list(rect_2d_size);
+        for (int i = 0; i < rect_2d_size; ++i)
+        {
+            const auto& rhi_rect_2d_element = pCreateInfo->pViewportState->pScissors[i];
+            auto&       vk_rect_2d_element  = vk_rect_2d_list[i];
+
+            VkOffset2D offset2d {};
+            offset2d.x = rhi_rect_2d_element.offset.x;
+            offset2d.y = rhi_rect_2d_element.offset.y;
+
+            VkExtent2D extend2d {};
+            extend2d.width  = rhi_rect_2d_element.extent.width;
+            extend2d.height = rhi_rect_2d_element.extent.height;
+
+            vk_rect_2d_element.offset = offset2d;
+            vk_rect_2d_element.extent = extend2d;
+        };
+
+        VkPipelineViewportStateCreateInfo vk_pipeline_viewport_state_create_info {};
+        vk_pipeline_viewport_state_create_info.sType = static_cast<VkStructureType>(pCreateInfo->pViewportState->sType);
+        vk_pipeline_viewport_state_create_info.pNext = pCreateInfo->pViewportState->pNext;
+        vk_pipeline_viewport_state_create_info.flags =
+            static_cast<VkPipelineViewportStateCreateFlags>(pCreateInfo->pViewportState->flags);
+        vk_pipeline_viewport_state_create_info.viewportCount = pCreateInfo->pViewportState->viewportCount;
+        vk_pipeline_viewport_state_create_info.pViewports    = vk_viewport_list.data();
+        vk_pipeline_viewport_state_create_info.scissorCount  = pCreateInfo->pViewportState->scissorCount;
+        vk_pipeline_viewport_state_create_info.pScissors     = vk_rect_2d_list.data();
+
+        // rasterization
+        VkPipelineRasterizationStateCreateInfo vk_pipeline_rasterization_state_create_info {};
+        vk_pipeline_rasterization_state_create_info.sType =
+            static_cast<VkStructureType>(pCreateInfo->pRasterizationState->sType);
+        vk_pipeline_rasterization_state_create_info.pNext = pCreateInfo->pRasterizationState->pNext;
+        vk_pipeline_rasterization_state_create_info.flags =
+            static_cast<VkPipelineRasterizationStateCreateFlags>(pCreateInfo->pRasterizationState->flags);
+        vk_pipeline_rasterization_state_create_info.depthClampEnable =
+            static_cast<VkBool32>(pCreateInfo->pRasterizationState->depthClampEnable);
+        vk_pipeline_rasterization_state_create_info.rasterizerDiscardEnable =
+            static_cast<VkBool32>(pCreateInfo->pRasterizationState->rasterizerDiscardEnable);
+        vk_pipeline_rasterization_state_create_info.polygonMode =
+            static_cast<VkPolygonMode>(pCreateInfo->pRasterizationState->polygonMode);
+        vk_pipeline_rasterization_state_create_info.cullMode =
+            static_cast<VkCullModeFlags>(pCreateInfo->pRasterizationState->cullMode);
+        vk_pipeline_rasterization_state_create_info.frontFace =
+            static_cast<VkFrontFace>(pCreateInfo->pRasterizationState->frontFace);
+        vk_pipeline_rasterization_state_create_info.depthBiasEnable =
+            static_cast<VkBool32>(pCreateInfo->pRasterizationState->depthBiasEnable);
+        vk_pipeline_rasterization_state_create_info.depthBiasConstantFactor =
+            pCreateInfo->pRasterizationState->depthBiasConstantFactor;
+        vk_pipeline_rasterization_state_create_info.depthBiasClamp = pCreateInfo->pRasterizationState->depthBiasClamp;
+        vk_pipeline_rasterization_state_create_info.depthBiasSlopeFactor =
+            pCreateInfo->pRasterizationState->depthBiasSlopeFactor;
+        vk_pipeline_rasterization_state_create_info.lineWidth = pCreateInfo->pRasterizationState->lineWidth;
+
+        // MSAA
+        VkPipelineMultisampleStateCreateInfo vk_pipeline_multisample_state_create_info {};
+        vk_pipeline_multisample_state_create_info.sType =
+            static_cast<VkStructureType>(pCreateInfo->pMultisampleState->sType);
+        vk_pipeline_multisample_state_create_info.pNext = pCreateInfo->pMultisampleState->pNext;
+        vk_pipeline_multisample_state_create_info.flags =
+            static_cast<VkPipelineMultisampleStateCreateFlags>(pCreateInfo->pMultisampleState->flags);
+        vk_pipeline_multisample_state_create_info.rasterizationSamples =
+            static_cast<VkSampleCountFlagBits>(pCreateInfo->pMultisampleState->rasterizationSamples);
+        vk_pipeline_multisample_state_create_info.sampleShadingEnable =
+            static_cast<VkBool32>(pCreateInfo->pMultisampleState->sampleShadingEnable);
+        vk_pipeline_multisample_state_create_info.minSampleShading = pCreateInfo->pMultisampleState->minSampleShading;
+        vk_pipeline_multisample_state_create_info.pSampleMask =
+            reinterpret_cast<const RHISampleMask*>(pCreateInfo->pMultisampleState->pSampleMask);
+        vk_pipeline_multisample_state_create_info.alphaToCoverageEnable =
+            static_cast<VkBool32>(pCreateInfo->pMultisampleState->alphaToCoverageEnable);
+        vk_pipeline_multisample_state_create_info.alphaToOneEnable =
+            static_cast<VkBool32>(pCreateInfo->pMultisampleState->alphaToOneEnable);
+
+        // color blend
+        int pipeline_color_blend_attachment_state_size = pCreateInfo->pColorBlendState->attachmentCount;
+        std::vector<VkPipelineColorBlendAttachmentState> vk_pipeline_color_blend_attachment_state_list(
+            pipeline_color_blend_attachment_state_size);
+        for (int i = 0; i < pipeline_color_blend_attachment_state_size; ++i)
+        {
+            const auto& rhi_pipeline_color_blend_attachment_state_element =
+                pCreateInfo->pColorBlendState->pAttachments[i];
+            auto& vk_pipeline_color_blend_attachment_state_element = vk_pipeline_color_blend_attachment_state_list[i];
+
+            vk_pipeline_color_blend_attachment_state_element.blendEnable =
+                static_cast<VkBool32>(rhi_pipeline_color_blend_attachment_state_element.blendEnable);
+            vk_pipeline_color_blend_attachment_state_element.srcColorBlendFactor =
+                static_cast<VkBlendFactor>(rhi_pipeline_color_blend_attachment_state_element.srcColorBlendFactor);
+            vk_pipeline_color_blend_attachment_state_element.dstColorBlendFactor =
+                static_cast<VkBlendFactor>(rhi_pipeline_color_blend_attachment_state_element.dstColorBlendFactor);
+            vk_pipeline_color_blend_attachment_state_element.colorBlendOp =
+                static_cast<VkBlendOp>(rhi_pipeline_color_blend_attachment_state_element.colorBlendOp);
+            vk_pipeline_color_blend_attachment_state_element.srcAlphaBlendFactor =
+                static_cast<VkBlendFactor>(rhi_pipeline_color_blend_attachment_state_element.srcAlphaBlendFactor);
+            vk_pipeline_color_blend_attachment_state_element.dstAlphaBlendFactor =
+                static_cast<VkBlendFactor>(rhi_pipeline_color_blend_attachment_state_element.dstAlphaBlendFactor);
+            vk_pipeline_color_blend_attachment_state_element.alphaBlendOp =
+                static_cast<VkBlendOp>(rhi_pipeline_color_blend_attachment_state_element.alphaBlendOp);
+            vk_pipeline_color_blend_attachment_state_element.colorWriteMask =
+                static_cast<VkColorComponentFlags>(rhi_pipeline_color_blend_attachment_state_element.colorWriteMask);
+        };
+
+        VkPipelineColorBlendStateCreateInfo vk_pipeline_color_blend_state_create_info {};
+        vk_pipeline_color_blend_state_create_info.sType =
+            static_cast<VkStructureType>(pCreateInfo->pColorBlendState->sType);
+        vk_pipeline_color_blend_state_create_info.pNext         = pCreateInfo->pColorBlendState->pNext;
+        vk_pipeline_color_blend_state_create_info.flags         = pCreateInfo->pColorBlendState->flags;
+        vk_pipeline_color_blend_state_create_info.logicOpEnable = pCreateInfo->pColorBlendState->logicOpEnable;
+        vk_pipeline_color_blend_state_create_info.logicOp =
+            static_cast<VkLogicOp>(pCreateInfo->pColorBlendState->logicOp);
+        vk_pipeline_color_blend_state_create_info.attachmentCount = pCreateInfo->pColorBlendState->attachmentCount;
+        vk_pipeline_color_blend_state_create_info.pAttachments = vk_pipeline_color_blend_attachment_state_list.data();
+        for (int i = 0; i < 4; ++i)
+        {
+            vk_pipeline_color_blend_state_create_info.blendConstants[i] =
+                pCreateInfo->pColorBlendState->blendConstants[i];
+        };
+
+        // dynamic
+        int                         dynamic_state_size = pCreateInfo->pDynamicState->dynamicStateCount;
+        std::vector<VkDynamicState> vk_dynamic_state_list(dynamic_state_size);
+        for (int i = 0; i < dynamic_state_size; ++i)
+        {
+            const auto& rhi_dynamic_state_element = pCreateInfo->pDynamicState->pDynamicStates[i];
+            auto&       vk_dynamic_state_element  = vk_dynamic_state_list[i];
+
+            vk_dynamic_state_element = static_cast<VkDynamicState>(rhi_dynamic_state_element);
+        };
+
+        VkPipelineDynamicStateCreateInfo vk_pipeline_dynamic_state_create_info {};
+        vk_pipeline_dynamic_state_create_info.sType = static_cast<VkStructureType>(pCreateInfo->pDynamicState->sType);
+        vk_pipeline_dynamic_state_create_info.pNext = pCreateInfo->pDynamicState->pNext;
+        vk_pipeline_dynamic_state_create_info.flags =
+            static_cast<VkPipelineDynamicStateCreateFlags>(pCreateInfo->pDynamicState->flags);
+        vk_pipeline_dynamic_state_create_info.dynamicStateCount = pCreateInfo->pDynamicState->dynamicStateCount;
+        vk_pipeline_dynamic_state_create_info.pDynamicStates    = vk_dynamic_state_list.data();
+
+        VkGraphicsPipelineCreateInfo create_info {};
+        create_info.sType               = static_cast<VkStructureType>(pCreateInfo->sType);
+        create_info.pNext               = pCreateInfo->pNext;
+        create_info.flags               = static_cast<VkPipelineCreateFlags>(pCreateInfo->flags);
+        create_info.stageCount          = pCreateInfo->stageCount;
+        create_info.pStages             = vk_pipeline_shader_stage_create_info_list.data();
+        create_info.pVertexInputState   = &vk_pipeline_vertex_input_state_create_info;
+        create_info.pInputAssemblyState = &vk_pipeline_input_assembly_state_create_info;
+        // create_info.pTessellationState  = vk_pipeline_tessellation_state_create_info_ptr;
+        create_info.pViewportState      = &vk_pipeline_viewport_state_create_info;
+        create_info.pRasterizationState = &vk_pipeline_rasterization_state_create_info;
+        create_info.pMultisampleState   = &vk_pipeline_multisample_state_create_info;
+        create_info.pColorBlendState    = &vk_pipeline_color_blend_state_create_info;
+        // create_info.pDepthStencilState  = &vk_pipeline_depth_stencil_state_create_info;
+        create_info.pDynamicState = &vk_pipeline_dynamic_state_create_info;
+        create_info.layout        = static_cast<VulkanPipelineLayout*>(pCreateInfo->layout)->getResource();
+        create_info.renderPass    = static_cast<VulkanRenderPass*>(pCreateInfo->renderPass)->getResource();
+        create_info.subpass       = pCreateInfo->subpass;
+        if (pCreateInfo->basePipelineHandle != nullptr)
+            create_info.basePipelineHandle =
+                static_cast<VulkanPipeline*>(pCreateInfo->basePipelineHandle)->getResource();
+        else
+            create_info.basePipelineHandle = VK_NULL_HANDLE;
+        create_info.basePipelineIndex = pCreateInfo->basePipelineIndex;
+
+        pPipelines = new VulkanPipeline();
+        VkPipeline      vk_pipelines;
+        VkPipelineCache vk_pipeline_cache = VK_NULL_HANDLE;
+        if (pipelineCache != nullptr)
+            vk_pipeline_cache = static_cast<VulkanPipelineCache*>(pipelineCache)->getResource();
+        VkResult result = vkCreateGraphicsPipelines(
+            m_device, vk_pipeline_cache, createInfoCount, &create_info, nullptr, &vk_pipelines);
+        static_cast<VulkanPipeline*>(pPipelines)->setResource(vk_pipelines);
+
+        if (result != VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan failed to create GraphicsPipelines!");
+            return false;
+        }
         return RHI_SUCCESS;
     }
 
     bool VulkanRHI::createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
                                          RHIPipelineLayout*&                pPipelineLayout)
-    { // TODO: implement
+    {
         VkPipelineLayoutCreateInfo create_info {};
         create_info.sType          = static_cast<VkStructureType>(pCreateInfo->sType);
         create_info.pNext          = pCreateInfo->pNext;
@@ -548,6 +864,119 @@ namespace Piccolo
         if (result != VK_SUCCESS)
         {
             LOG_ERROR("Failed to create Vulkan pipeline layout!");
+            return false;
+        }
+        return RHI_SUCCESS;
+    }
+
+    bool VulkanRHI::createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)
+    {
+        // attachment convert
+        std::vector<VkAttachmentDescription> vk_attachments(pCreateInfo->attachmentCount);
+        for (uint32_t i = 0; i < pCreateInfo->attachmentCount; ++i)
+        {
+            const auto& rhi_desc = pCreateInfo->pAttachments[i];
+            auto&       vk_desc  = vk_attachments[i];
+
+            vk_desc.format         = static_cast<VkFormat>((rhi_desc).format);
+            vk_desc.samples        = static_cast<VkSampleCountFlagBits>((rhi_desc).samples);
+            vk_desc.loadOp         = static_cast<VkAttachmentLoadOp>((rhi_desc).loadOp);
+            vk_desc.storeOp        = static_cast<VkAttachmentStoreOp>((rhi_desc).storeOp);
+            vk_desc.stencilLoadOp  = static_cast<VkAttachmentLoadOp>((rhi_desc).stencilLoadOp);
+            vk_desc.stencilStoreOp = static_cast<VkAttachmentStoreOp>((rhi_desc).stencilStoreOp);
+            vk_desc.initialLayout  = static_cast<VkImageLayout>((rhi_desc).initialLayout);
+            vk_desc.finalLayout    = static_cast<VkImageLayout>((rhi_desc).finalLayout);
+        };
+
+        // subpass convert
+        int total_attachment_refenrence = 0;
+        for (uint32_t i = 0; i < pCreateInfo->subpassCount; i++)
+        {
+            const auto& rhi_desc = pCreateInfo->pSubpasses[i];
+            total_attachment_refenrence += rhi_desc.colorAttachmentCount; // pColorAttachments
+        }
+        std::vector<VkSubpassDescription>  vk_subpass_description(pCreateInfo->subpassCount);
+        std::vector<VkAttachmentReference> vk_attachment_reference(total_attachment_refenrence);
+        int                                current_attachment_refence = 0;
+        for (uint32_t i = 0; i < pCreateInfo->subpassCount; ++i)
+        {
+            const auto& rhi_desc = pCreateInfo->pSubpasses[i];
+            auto&       vk_desc  = vk_subpass_description[i];
+
+            vk_desc.pipelineBindPoint    = static_cast<VkPipelineBindPoint>((rhi_desc).pipelineBindPoint);
+            vk_desc.colorAttachmentCount = (rhi_desc).colorAttachmentCount;
+            vk_desc.pColorAttachments    = &vk_attachment_reference[current_attachment_refence];
+            for (uint32_t i = 0; i < (rhi_desc).colorAttachmentCount; ++i)
+            {
+                const auto& rhi_attachment_refence_color = (rhi_desc).pColorAttachments[i];
+                auto&       vk_attachment_refence_color  = vk_attachment_reference[current_attachment_refence];
+
+                vk_attachment_refence_color.attachment = rhi_attachment_refence_color.attachment;
+                vk_attachment_refence_color.layout = static_cast<VkImageLayout>(rhi_attachment_refence_color.layout);
+
+                current_attachment_refence += 1;
+            };
+        }
+        if (current_attachment_refence != total_attachment_refenrence)
+        {
+            LOG_ERROR("currentAttachmentRefence != totalAttachmentRefenrence");
+            return false;
+        }
+
+        // render pass convert
+        VkRenderPassCreateInfo create_info {};
+        create_info.sType           = static_cast<VkStructureType>(pCreateInfo->sType);
+        create_info.attachmentCount = pCreateInfo->attachmentCount;
+        create_info.pAttachments    = vk_attachments.data();
+        create_info.subpassCount    = pCreateInfo->subpassCount;
+        create_info.pSubpasses      = vk_subpass_description.data();
+
+        pRenderPass = new VulkanRenderPass();
+        VkRenderPass vk_render_pass;
+        VkResult     result = vkCreateRenderPass(m_device, &create_info, nullptr, &vk_render_pass);
+        static_cast<VulkanRenderPass*>(pRenderPass)->setResource(vk_render_pass);
+
+        if (result != VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan failed to create RenderPass!");
+            return false;
+        }
+        return RHI_SUCCESS;
+    }
+
+    bool VulkanRHI::createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pFramebuffer)
+    {
+        // image view
+        int                      image_view_size = pCreateInfo->attachmentCount;
+        std::vector<VkImageView> vk_image_view_list(image_view_size);
+        for (int i = 0; i < image_view_size; ++i)
+        {
+            const auto& rhi_image_view_element = pCreateInfo->pAttachments[i];
+            auto&       vk_image_view_element  = vk_image_view_list[i];
+
+            vk_image_view_element = static_cast<VulkanImageView*>(rhi_image_view_element)->getResource();
+        }
+
+        // frame buffer
+        VkFramebufferCreateInfo create_info {};
+        create_info.sType           = static_cast<VkStructureType>(pCreateInfo->sType);
+        create_info.pNext           = pCreateInfo->pNext;
+        create_info.flags           = static_cast<VkFramebufferCreateFlags>(pCreateInfo->flags);
+        create_info.renderPass      = static_cast<VulkanRenderPass*>(pCreateInfo->renderPass)->getResource();
+        create_info.attachmentCount = pCreateInfo->attachmentCount;
+        create_info.pAttachments    = vk_image_view_list.data();
+        create_info.width           = pCreateInfo->width;
+        create_info.height          = pCreateInfo->height;
+        create_info.layers          = pCreateInfo->layers;
+
+        pFramebuffer = new VulkanFramebuffer();
+        VkFramebuffer vk_framebuffer;
+        VkResult      result = vkCreateFramebuffer(m_device, &create_info, nullptr, &vk_framebuffer);
+        static_cast<VulkanFramebuffer*>(pFramebuffer)->setResource(vk_framebuffer);
+
+        if (result != VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan failed to create Framebuffer!");
             return false;
         }
         return RHI_SUCCESS;

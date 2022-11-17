@@ -31,11 +31,16 @@ namespace Piccolo
                                              RHIPipeline*&                        pPipelines) override;
         virtual bool createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
                                           RHIPipelineLayout*&                pPipelineLayout) override;
+        virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) override;
+        virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo,
+                                       RHIFramebuffer*&                pFramebuffer) override;
 
         // query
         RHISwapChainDesc getSwapchainInfo() override;
 
     private:
+        static uint8_t const m_k_max_frames_in_flight {1};
+
         RHIQueue* m_graphics_queue {nullptr}; // 图形队列句柄
 
         RHIFormat   m_swapchain_image_format {RHI_FORMAT_UNDEFINED}; // 交换链图片格式
@@ -43,6 +48,8 @@ namespace Piccolo
         std::vector<RHIImageView*> m_swapchain_imageviews; // 图像的视图：描述如何访问图像以及访问图像的哪一部分
         RHIViewport m_viewport;
         RHIRect2D   m_scissor;
+
+        RHICommandBuffer* m_command_buffers[m_k_max_frames_in_flight];
 
         QueueFamilyIndices m_queue_indices; // 队列家族索引
 
@@ -53,14 +60,22 @@ namespace Piccolo
         VkDevice         m_device {nullptr};        // 逻辑设备
         VkQueue          m_present_queue {nullptr}; // 显示队列句柄
 
+        RHICommandPool* m_rhi_command_pool; // 命令池
+
         VkSwapchainKHR       m_swapchain {nullptr}; // 交换链句柄
         std::vector<VkImage> m_swapchain_images;    // 交换链图像句柄
+
+        // command pool and buffers
+        VkCommandPool   m_command_pools[m_k_max_frames_in_flight];
+        VkCommandBuffer m_vk_command_buffers[m_k_max_frames_in_flight];
 
         void createInstance();
         void initializeDebugMessenger();
         void createWindowSurface();
         void initializePhysicalDevice();
         void createLogicDevice();
+        void createCommandPool();
+        void createCommandBuffers();
 
         bool m_enable_validation_layers {true}; // 启用验证层
         bool m_enable_debug_utils_label {true};

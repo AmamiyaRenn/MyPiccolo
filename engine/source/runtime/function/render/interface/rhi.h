@@ -22,15 +22,17 @@ namespace Piccolo
         virtual void initialize(RHIInitInfo init_info) = 0;
 
         // allocate and create
-        virtual void       createSwapchain()                                                 = 0;
-        virtual void       createSwapchainImageViews()                                       = 0;
-        virtual RHIShader* createShaderModule(const std::vector<unsigned char>& shader_code) = 0;
+        virtual void       createSwapchain()                                                                       = 0;
+        virtual void       createSwapchainImageViews()                                                             = 0;
+        virtual RHIShader* createShaderModule(const std::vector<unsigned char>& shader_code)                       = 0;
         virtual bool       createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
                                                    uint32_t                             createInfoCount,
                                                    const RHIGraphicsPipelineCreateInfo* pCreateInfos,
-                                                   RHIPipeline*&                        pPipelines)                 = 0;
+                                                   RHIPipeline*&                        pPipelines)                                       = 0;
         virtual bool       createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
-                                                RHIPipelineLayout*&                pPipelineLayout)         = 0;
+                                                RHIPipelineLayout*&                pPipelineLayout)                               = 0;
+        virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)     = 0;
+        virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pFramebuffer) = 0;
 
         // query
         virtual RHISwapChainDesc getSwapchainInfo() = 0;

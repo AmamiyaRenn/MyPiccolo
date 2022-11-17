@@ -14,7 +14,6 @@ namespace Piccolo
     private:
         VkQueue m_resource;
     };
-
     class VulkanImageView : public RHIImageView
     {
     public:
@@ -33,7 +32,6 @@ namespace Piccolo
     private:
         VkShaderModule m_resource;
     };
-
     class VulkanPipelineLayout : public RHIPipelineLayout
     {
     public:
@@ -42,5 +40,59 @@ namespace Piccolo
 
     private:
         VkPipelineLayout m_resource;
+    };
+    class VulkanRenderPass : public RHIRenderPass
+    {
+    public:
+        void         setResource(VkRenderPass res) { m_resource = res; }
+        VkRenderPass getResource() const { return m_resource; }
+
+    private:
+        VkRenderPass m_resource;
+    };
+    class VulkanPipeline : public RHIPipeline
+    {
+    public:
+        void       setResource(VkPipeline res) { m_resource = res; }
+        VkPipeline getResource() const { return m_resource; }
+
+    private:
+        VkPipeline m_resource;
+    };
+    class VulkanPipelineCache : public RHIPipelineCache
+    {
+    public:
+        void            setResource(VkPipelineCache res) { m_resource = res; }
+        VkPipelineCache getResource() const { return m_resource; }
+
+    private:
+        VkPipelineCache m_resource;
+    };
+    class VulkanFramebuffer : public RHIFramebuffer
+    {
+    public:
+        void          setResource(VkFramebuffer res) { m_resource = res; }
+        VkFramebuffer getResource() const { return m_resource; }
+
+    private:
+        VkFramebuffer m_resource;
+    };
+    class VulkanCommandPool : public RHICommandPool
+    {
+    public:
+        void          setResource(VkCommandPool res) { m_resource = res; }
+        VkCommandPool getResource() const { return m_resource; }
+
+    private:
+        VkCommandPool m_resource;
+    };
+    class VulkanCommandBuffer : public RHICommandBuffer
+    {
+    public:
+        void            setResource(VkCommandBuffer res) { m_resource = res; }
+        VkCommandBuffer getResource() const { return m_resource; }
+
+    private:
+        VkCommandBuffer m_resource;
     };
 } // namespace Piccolo
