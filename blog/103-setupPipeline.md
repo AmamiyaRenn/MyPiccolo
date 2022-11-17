@@ -128,7 +128,7 @@ endif()
 所以我们在 render 文件夹下开一个 debugdraw 文件夹，用于放置`DebugDrawPipeline`类与`DebugDrawManager`(渲染调试管理器)类，通过后者来管理前者，前者则是实现我们的目的的类——它将会通过调用 VulkanRHI 创造一个渲染管线，并完成渲染
 我们依然是按照`vulkan-tutorial`来编写代码，这次我们着重抄写的是`DebugDrawPipeline`的` setupPipelines()``setupRenderPass `的相关部分
 我们在 shader/glsl 中加入 debugdraw.vert 与 debugdraw.frag，并加入`vulkan-tutorial`中提供的 glsl 代码，然后编译代码，看看能不能通过编译，当通过编译后，再 generated 文件夹中便会编译生成 spv 与 cpp，如果你编译生成成功，则代表着你成功引入了 glsl
-题外话：鉴于 piccolo 本身注释大部分是音乐 ② 六级马上要考了，得补一点英语水平，接下的代码注释尽量会是英语
+题外话：鉴于 piccolo 本身注释大部分是英语 ② 六级马上要考了，得补一点英语水平，接下的代码注释尽量会是英语
 
 ## setupPipelines()
 
