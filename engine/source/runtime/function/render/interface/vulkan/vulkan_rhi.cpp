@@ -1,23 +1,28 @@
-﻿#include "function/render/interface/vulkan/vulkan_rhi.h"
-#include "GLFW/glfw3.h"
+﻿#include "function/render/render_type.h"
+#include "vulkan/vulkan_core.h"
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <algorithm>
+#include <utility>
+
 #include "core/base/macro.h"
+#include "function/render/interface/vulkan/vulkan_rhi.h"
 #include "function/render/interface/vulkan/vulkan_rhi_resource.h"
 #include "function/render/interface/vulkan/vulkan_util.h"
-#include "vulkan/vulkan_core.h"
-#include <algorithm>
-#include <stdint.h>
-#include <utility>
 
 namespace Piccolo
 {
     void VulkanRHI::initialize(RHIInitInfo init_info)
     {
         // Vulkan窗口对象初始化
-        m_window                       = init_info.window_system->getWindow();
-        std::array<int, 2> window_size = init_info.window_system->getWindowSize();
+        m_window                       = init_info.m_window_system->getWindow();
+        std::array<int, 2> window_size = init_info.m_window_system->getWindowSize();
 
-        // 视口初始化
-        m_viewport = {0.0f, 0.0f, static_cast<float>(window_size[0]), static_cast<float>(window_size[1]), 0.0f, 0.0f};
+        // 视口初始化（详见视口变换与裁剪坐标）
+        m_viewport = {0.0f, 0.0f, static_cast<float>(window_size[0]), static_cast<float>(window_size[1]), 0.0f, 1.0f};
+        // 裁剪坐标初始化
+        m_scissor = {{0, 0}, {static_cast<uint32_t>(window_size[0]), static_cast<uint32_t>(window_size[1])}};
 
         // 是否使用Vulkan Debug工具（vscode cmake tools会自动配置NDEBUG宏）
 #ifndef NDEBUG
@@ -207,7 +212,7 @@ namespace Piccolo
             chooseSwapchainSurfaceFormatFromDetails(swapchain_support_details.formats);
         // choose the best or fitting present mode
         VkPresentModeKHR chosen_present_mode =
-            chooseSwapchainPresentModeFromDetails(swapchain_support_details.present_modes);
+            chooseSwapchainPresentModeFromDetails(swapchain_support_details.presentModes);
         // choose the best or fitting extent
         VkExtent2D chosen_extent = chooseSwapchainExtentFromDetails(swapchain_support_details.capabilities);
 
@@ -429,9 +434,9 @@ namespace Piccolo
         vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, m_surface, &presentmode_count, nullptr);
         if (presentmode_count != 0)
         {
-            details.present_modes.resize(presentmode_count);
+            details.presentModes.resize(presentmode_count);
             vkGetPhysicalDeviceSurfacePresentModesKHR(
-                physical_device, m_surface, &presentmode_count, details.present_modes.data());
+                physical_device, m_surface, &presentmode_count, details.presentModes.data());
         }
 
         return details;
@@ -450,7 +455,7 @@ namespace Piccolo
         {
             SwapChainSupportDetails swapchain_support_details = querySwapChainSupport(physical_device);
             is_swapchain_adequate =
-                !swapchain_support_details.formats.empty() && !swapchain_support_details.present_modes.empty();
+                !swapchain_support_details.formats.empty() && !swapchain_support_details.presentModes.empty();
         }
 
         return queue_indices.isComplete() && is_swapchain_adequate;
@@ -500,5 +505,62 @@ namespace Piccolo
 
             return actual_extent;
         }
+    }
+
+    // 封装一个RHIShader(存储VkShaderModule)
+    RHIShader* VulkanRHI::createShaderModule(const std::vector<unsigned char>& shader_code)
+    {
+        RHIShader*     shader    = new VulkanShader();
+        VkShaderModule vk_shader = VulkanUtil::createShaderModule(m_device, shader_code);
+        static_cast<VulkanShader*>(shader)->setResource(vk_shader);
+        return shader;
+    }
+
+    bool VulkanRHI::createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
+                                            uint32_t                             createInfoCount,
+                                            const RHIGraphicsPipelineCreateInfo* pCreateInfo,
+                                            RHIPipeline*&                        pPipelines)
+    { // TODO: implement
+        // int pipeline_shader_stage_create_info_size = pCreateInfo->stageCount;
+        // //
+        // 要使用着色器，我们需要通过VkPipelineShaderStageCreateInfo结构体把它们分配到图形渲染管线上的某一阶段，作为管线创建过程的一部分
+        // std::vector<VkPipelineShaderStageCreateInfo> vk_pipeline_shader_stage_create_info_list(
+        //     pipeline_shader_stage_create_info_size);
+
+        return RHI_SUCCESS;
+    }
+
+    bool VulkanRHI::createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
+                                         RHIPipelineLayout*&                pPipelineLayout)
+    { // TODO: implement
+        VkPipelineLayoutCreateInfo create_info {};
+        create_info.sType          = static_cast<VkStructureType>(pCreateInfo->sType);
+        create_info.pNext          = pCreateInfo->pNext;
+        create_info.flags          = static_cast<VkPipelineLayoutCreateFlags>(pCreateInfo->flags);
+        create_info.setLayoutCount = pCreateInfo->setLayoutCount;
+        create_info.pSetLayouts    = nullptr; // TODO: layout descriptor
+
+        pPipelineLayout = new VulkanPipelineLayout();
+        VkPipelineLayout vk_pipeline_layout;
+        VkResult         result = vkCreatePipelineLayout(m_device, &create_info, nullptr, &vk_pipeline_layout);
+        static_cast<VulkanPipelineLayout*>(pPipelineLayout)->setResource(vk_pipeline_layout);
+
+        if (result != VK_SUCCESS)
+        {
+            LOG_ERROR("Failed to create Vulkan pipeline layout!");
+            return false;
+        }
+        return RHI_SUCCESS;
+    }
+
+    RHISwapChainDesc VulkanRHI::getSwapchainInfo()
+    {
+        RHISwapChainDesc desc;
+        desc.image_format = m_swapchain_image_format;
+        desc.extent       = m_swapchain_extent;
+        desc.viewport     = &m_viewport;
+        desc.scissor      = &m_scissor;
+        desc.imageViews   = m_swapchain_imageviews;
+        return desc;
     }
 } // namespace Piccolo

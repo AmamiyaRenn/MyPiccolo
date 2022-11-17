@@ -19,6 +19,10 @@ namespace Piccolo
         RenderSystemInitInfo render_init_info;
         render_init_info.m_window_system = m_window_system;
         m_render_system->initialize(render_init_info);
+
+        // 初始化调试渲染管理器
+        m_debugdraw_manager = std::make_shared<DebugDrawManager>();
+        m_debugdraw_manager->initialize();
     }
     void RuntimeGlobalContext::shutdownSystems() {}
 } // namespace Piccolo

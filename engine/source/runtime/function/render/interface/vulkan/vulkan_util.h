@@ -2,6 +2,8 @@
 
 #include "vulkan/vulkan_core.h"
 
+#include <vector>
+
 namespace Piccolo
 {
     class VulkanUtil
@@ -14,5 +16,7 @@ namespace Piccolo
                                            VkImageViewType    view_type,
                                            uint32_t           layout_count,
                                            uint32_t           miplevels);
+
+        static VkShaderModule createShaderModule(VkDevice device, const std::vector<unsigned char>& shader_code);
     };
 } // namespace Piccolo

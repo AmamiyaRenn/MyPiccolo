@@ -14,7 +14,8 @@ namespace Piccolo
     class RenderSystem
     {
     public:
-        void initialize(RenderSystemInitInfo init_info);
+        void                 initialize(RenderSystemInitInfo init_info);
+        std::shared_ptr<RHI> getRHI() const { return m_rhi; }
 
     private:
         std::shared_ptr<RHI> m_rhi;

@@ -1,14 +1,12 @@
 ﻿#pragma once
 
-#include "vulkan/vulkan_core.h"
 #include <cstring>
 #include <set>
 #include <vector>
 
 #include "GLFW/glfw3.h"
 
-#include <vk_mem_alloc.h>
-#include <vulkan/vulkan.h>
+#include "vulkan/vulkan_core.h"
 
 #include "function/render/interface/rhi.h"
 #include "function/render/interface/rhi_struct.h"
@@ -23,9 +21,19 @@ namespace Piccolo
         virtual void initialize(RHIInitInfo init_info) override final;
 
         // allocate and create
-        void extracted(VkExtent2D& chosen_extent);
-        void createSwapchain() override;
-        void createSwapchainImageViews() override;
+        void         extracted(VkExtent2D& chosen_extent);
+        void         createSwapchain() override;
+        void         createSwapchainImageViews() override;
+        RHIShader*   createShaderModule(const std::vector<unsigned char>& shader_code) override;
+        bool         createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
+                                             uint32_t                             createInfoCount,
+                                             const RHIGraphicsPipelineCreateInfo* pCreateInfos,
+                                             RHIPipeline*&                        pPipelines) override;
+        virtual bool createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
+                                          RHIPipelineLayout*&                pPipelineLayout) override;
+
+        // query
+        RHISwapChainDesc getSwapchainInfo() override;
 
     private:
         RHIQueue* m_graphics_queue {nullptr}; // 图形队列句柄
@@ -34,6 +42,7 @@ namespace Piccolo
         RHIExtent2D m_swapchain_extent;                              // 交换链图片范围
         std::vector<RHIImageView*> m_swapchain_imageviews; // 图像的视图：描述如何访问图像以及访问图像的哪一部分
         RHIViewport m_viewport;
+        RHIRect2D   m_scissor;
 
         QueueFamilyIndices m_queue_indices; // 队列家族索引
 

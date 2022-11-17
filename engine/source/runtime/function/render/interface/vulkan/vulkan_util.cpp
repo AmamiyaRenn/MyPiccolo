@@ -1,5 +1,6 @@
 ﻿#include "function/render/interface/vulkan/vulkan_util.h"
 #include "core/base/macro.h"
+#include "vulkan/vulkan_core.h"
 
 namespace Piccolo
 {
@@ -24,8 +25,27 @@ namespace Piccolo
 
         VkImageView image_view;
         if (vkCreateImageView(device, &image_view_create_info, nullptr, &image_view) != VK_SUCCESS)
+        {
             LOG_ERROR("Failed to create image views!");
+            return VK_NULL_HANDLE;
+        }
 
         return image_view;
+    }
+
+    VkShaderModule VulkanUtil::createShaderModule(VkDevice device, const std::vector<unsigned char>& shader_code)
+    {
+        VkShaderModuleCreateInfo shader_module_create_info {};
+        shader_module_create_info.sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        shader_module_create_info.codeSize = shader_code.size();
+        shader_module_create_info.pCode    = reinterpret_cast<const uint32_t*>(shader_code.data());
+
+        VkShaderModule shader_module;
+        if (vkCreateShaderModule(device, &shader_module_create_info, nullptr, &shader_module) != VK_SUCCESS)
+        {
+            LOG_ERROR("Failed to create shader module!");
+            return VK_NULL_HANDLE;
+        }
+        return shader_module;
     }
 } // namespace Piccolo
