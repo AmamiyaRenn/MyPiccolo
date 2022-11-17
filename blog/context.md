@@ -20,6 +20,8 @@
 
 [第二节 Vulkan_RHI 初始化](https://zhuanlan.zhihu.com/p/583980556)
 
+[第三节 设置图形管线 setupPipelines()](https://zhuanlan.zhihu.com/p/584238207)
+
 ## 参考资料
 
 ### 引擎

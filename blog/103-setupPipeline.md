@@ -2,7 +2,7 @@
 ![Image](https://w.wallhaven.cc/full/4o/wallhaven-4o8mjm.png)
 本系列是笔者学习王希老师的 GAMES104 现代游戏引擎入门课程时抄写 Piccolo 源码的笔记，由于笔者连科班计算机都不是，且基本不懂图形学(也就学过 101 与 learningOpenGL)，如有错误那就请斧正
 本系列最终目标是王希老师所言“完成 104 后，人手一个小引擎”“最后能做个多人网络对战游戏”
-笔者代码在[此处](https://github.com/AmamiyaRenn/MyPiccolo.git)，代码会同步这篇文章对应的进度（所有的文章都有对应的 git tag）
+笔者代码在[此处](https://github.com/AmamiyaRenn/MyPiccolo/tree/v1.3)，代码会同步这篇文章对应的进度（所有的文章都有对应的 git tag）
 
 # [Piccolo 引擎复刻笔记] 第一章 创世 第三节 设置图形管线 setupPipelines()
 
