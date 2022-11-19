@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "function/render/interface/vulkan/vulkan_rhi_resource.h"
 #include <cstring>
 #include <set>
 #include <vector>
@@ -19,27 +20,54 @@ namespace Piccolo
     public:
         // initialize
         virtual void initialize(RHIInitInfo init_info) override final;
+        virtual void prepareContext() override final;
 
         // allocate and create
-        void         extracted(VkExtent2D& chosen_extent);
-        void         createSwapchain() override;
-        void         createSwapchainImageViews() override;
-        RHIShader*   createShaderModule(const std::vector<unsigned char>& shader_code) override;
-        bool         createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
-                                             uint32_t                             createInfoCount,
-                                             const RHIGraphicsPipelineCreateInfo* pCreateInfos,
-                                             RHIPipeline*&                        pPipelines) override;
-        virtual bool createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
-                                          RHIPipelineLayout*&                pPipelineLayout) override;
+        virtual void       createSwapchain() override;
+        virtual void       createSwapchainImageViews() override;
+        virtual RHIShader* createShaderModule(const std::vector<unsigned char>& shader_code) override;
+        virtual bool       createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
+                                                   uint32_t                             createInfoCount,
+                                                   const RHIGraphicsPipelineCreateInfo* pCreateInfos,
+                                                   RHIPipeline*&                        pPipelines) override;
+        virtual bool       createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
+                                                RHIPipelineLayout*&                pPipelineLayout) override;
         virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) override;
         virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo,
                                        RHIFramebuffer*&                pFramebuffer) override;
 
-        // query
-        RHISwapChainDesc getSwapchainInfo() override;
+        // command and command write
+        virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
+                                           const RHIRenderPassBeginInfo* pRenderPassBegin,
+                                           RHISubpassContents            contents) override;
+        virtual void cmdBindPipelinePFN(RHICommandBuffer*    commandBuffer,
+                                        RHIPipelineBindPoint pipelineBindPoint,
+                                        RHIPipeline*         pipeline) override;
+        virtual void cmdDraw(RHICommandBuffer* commandBuffer,
+                             uint32_t          vertexCount,
+                             uint32_t          instanceCount,
+                             uint32_t          firstVertex,
+                             uint32_t          firstInstance) override;
+        virtual void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer) override;
+        void         cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
+                                       uint32_t           firstViewport,
+                                       uint32_t           viewportCount,
+                                       const RHIViewport* pViewports) override;
+        void         cmdSetScissorPFN(RHICommandBuffer* commandBuffer,
+                                      uint32_t          firstScissor,
+                                      uint32_t          scissorCount,
+                                      const RHIRect2D*  pScissors) override;
+        virtual void waitForFences() override;
 
-    private:
-        static uint8_t const m_k_max_frames_in_flight {1};
+        // query
+        virtual RHISwapChainDesc  getSwapchainInfo() override;
+        virtual RHICommandBuffer* getCurrentCommandBuffer() const override;
+
+        // command write
+        virtual bool prepareBeforePass() override;
+        virtual void submitRendering() override;
+
+        static uint8_t const m_k_max_frames_in_flight {1}; // 最大同时渲染的图片数量
 
         RHIQueue* m_graphics_queue {nullptr}; // 图形队列句柄
 
@@ -62,13 +90,36 @@ namespace Piccolo
 
         RHICommandPool* m_rhi_command_pool; // 命令池
 
+        RHICommandBuffer* m_current_command_buffer = new VulkanCommandBuffer();
+
         VkSwapchainKHR       m_swapchain {nullptr}; // 交换链句柄
         std::vector<VkImage> m_swapchain_images;    // 交换链图像句柄
 
         // command pool and buffers
+        uint8_t         m_current_frame_index {0};
         VkCommandPool   m_command_pools[m_k_max_frames_in_flight];
         VkCommandBuffer m_vk_command_buffers[m_k_max_frames_in_flight];
+        VkSemaphore     m_image_available_for_render_semaphores[m_k_max_frames_in_flight];
+        VkSemaphore     m_image_finished_for_presentation_semaphores[m_k_max_frames_in_flight];
+        VkFence         m_is_frame_in_flight_fences[m_k_max_frames_in_flight];
 
+        // TODO: set
+        VkCommandBuffer m_vk_current_command_buffer;
+
+        uint32_t m_current_swapchain_image_index;
+
+        // function pointers
+        PFN_vkBeginCommandBuffer fn_vk_begin_command_buffer;
+        PFN_vkEndCommandBuffer   fn_vk_end_command_buffer;
+        PFN_vkCmdBeginRenderPass fn_vk_cmd_begin_render_pass;
+        PFN_vkCmdEndRenderPass   fn_vk_cmd_end_render_pass;
+        PFN_vkCmdBindPipeline    fn_vk_cmd_bind_pipeline;
+        PFN_vkCmdSetViewport     fn_vk_cmd_set_viewport;
+        PFN_vkCmdSetScissor      fn_vk_cmd_set_scissor;
+        PFN_vkWaitForFences      fn_vk_wait_for_fences;
+        PFN_vkResetFences        fn_vk_reset_fences;
+
+    private:
         void createInstance();
         void initializeDebugMessenger();
         void createWindowSurface();
@@ -76,6 +127,7 @@ namespace Piccolo
         void createLogicDevice();
         void createCommandPool();
         void createCommandBuffers();
+        void createSyncPrimitives();
 
         bool m_enable_validation_layers {true}; // 启用验证层
         bool m_enable_debug_utils_label {true};

@@ -95,4 +95,13 @@ namespace Piccolo
     private:
         VkCommandBuffer m_resource;
     };
+    class VulkanSemaphore : public RHISemaphore
+    {
+    public:
+        void         setResource(VkSemaphore res) { m_resource = res; }
+        VkSemaphore& getResource() { return m_resource; }
+
+    private:
+        VkSemaphore m_resource;
+    };
 } // namespace Piccolo

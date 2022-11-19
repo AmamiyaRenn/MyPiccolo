@@ -38,8 +38,10 @@ namespace Piccolo
     {
     public:
         explicit DebugDrawPipeline(DebugDrawPipelineType pipelineType) { m_pipeline_type = pipelineType; }
-        void                  initialize();
-        DebugDrawPipelineType getPipelineType() const { return m_pipeline_type; }
+        void                         initialize();
+        DebugDrawPipelineType        getPipelineType() const { return m_pipeline_type; }
+        const DebugDrawFramebuffer&  getFramebuffer() const { return m_framebuffer; }
+        const DebugDrawPipelineBase& getPipeline() const { return m_render_pipelines[0]; }
 
     private:
         void setupRenderPass();

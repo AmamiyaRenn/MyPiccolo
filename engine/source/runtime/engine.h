@@ -17,6 +17,8 @@ namespace Piccolo
         bool  tickOneFrame(float delta_time);
 
     protected:
+        bool rendererTick(float delta_time);
+
         std::chrono::steady_clock::time_point tick_time_point_last = std::chrono::steady_clock::now(); // 上个时间点
     };
 } // namespace Piccolo

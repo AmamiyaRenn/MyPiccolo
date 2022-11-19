@@ -30,10 +30,19 @@ namespace Piccolo
      */
     bool PiccoloEngine::tickOneFrame(float delta_time)
     {
+        rendererTick(delta_time);
+
         g_runtime_global_context.m_window_system->setTitle(
             std::string("Piccolo - " /*+std::to_string(getFPS())+" FPS"*/).c_str());
         // 检查有没有触发什么事件（比如键盘输入、鼠标移动等）、更新窗口状态，并调用对应的回调函数
         g_runtime_global_context.m_window_system->pollEvents();
         return !g_runtime_global_context.m_window_system->shouldClose();
     }
+
+    bool PiccoloEngine::rendererTick(float delta_time)
+    {
+        g_runtime_global_context.m_render_system->tick(delta_time);
+        return true;
+    }
+
 } // namespace Piccolo

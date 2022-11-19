@@ -12,9 +12,17 @@ namespace Piccolo
         void initialize();
         void setupPipelines();
 
+        void draw(uint32_t current_swapchain_image_index);
+
     private:
+        void drawDebugObject(uint32_t current_swapchain_image_index);
+        void drawPointLineTriangleBox(uint32_t current_swapchain_image_index);
+
         std::shared_ptr<RHI> m_rhi {nullptr};
 
         DebugDrawPipeline* m_debug_draw_pipeline[static_cast<uint32_t>(DebugDrawPipelineType::count)] = {};
+
+        size_t m_triangle_start_offset;
+        size_t m_triangle_end_offset;
     };
 } // namespace Piccolo

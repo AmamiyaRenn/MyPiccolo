@@ -45,6 +45,17 @@ namespace Piccolo
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments    = &color_attachment_reference;
 
+        // specify the subpass dependency
+        RHISubpassDependency  dependencies[1]       = {};
+        RHISubpassDependency& debug_draw_dependency = dependencies[0];
+        debug_draw_dependency.srcSubpass            = RHI_SUBPASS_EXTERNAL; // before render pass
+        debug_draw_dependency.dstSubpass            = 0;
+        debug_draw_dependency.srcStageMask          = RHI_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        debug_draw_dependency.dstStageMask          = RHI_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        debug_draw_dependency.srcAccessMask         = 0;
+        debug_draw_dependency.dstAccessMask         = RHI_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        debug_draw_dependency.dependencyFlags       = 0; // NOT BY REGION
+
         // create the render pass
         RHIRenderPassCreateInfo renderpass_create_info {};
         renderpass_create_info.sType           = RHI_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -52,6 +63,8 @@ namespace Piccolo
         renderpass_create_info.pAttachments    = &color_attachment_description;
         renderpass_create_info.subpassCount    = 1;
         renderpass_create_info.pSubpasses      = &subpass;
+        renderpass_create_info.dependencyCount = 1;
+        renderpass_create_info.pDependencies   = dependencies;
 
         if (m_rhi->createRenderPass(&renderpass_create_info, m_framebuffer.render_pass) != RHI_SUCCESS)
             LOG_ERROR("RHI failed to create RenderPass!");

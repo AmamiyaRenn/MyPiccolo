@@ -21,12 +21,11 @@ namespace Piccolo
     {
         assert(engine_runtime);
         assert(editor_ui);
-        while (true)
+        float delta_time = 0;
+        do
         {
-            float delta_time = engine_runtime->calculateDeltaTime();
-            if (!engine_runtime->tickOneFrame(delta_time))
-                return;
-        }
+            delta_time = engine_runtime->calculateDeltaTime();
+        } while (engine_runtime->tickOneFrame(delta_time));
     }
     void PiccoloEditor::shutdown() {}
 } // namespace Piccolo

@@ -1,16 +1,16 @@
-﻿#include "function/render/render_type.h"
+﻿#define GLFW_INCLUDE_VULKAN
 #include "vulkan/vulkan_core.h"
-#include <stdint.h>
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #include <algorithm>
+#include <stdint.h>
 #include <utility>
 
 #include "core/base/macro.h"
 #include "function/render/interface/vulkan/vulkan_rhi.h"
 #include "function/render/interface/vulkan/vulkan_rhi_resource.h"
 #include "function/render/interface/vulkan/vulkan_util.h"
+#include "function/render/render_type.h"
 
 namespace Piccolo
 {
@@ -44,13 +44,20 @@ namespace Piccolo
         createSwapchainImageViews();
         createCommandPool();
         createCommandBuffers();
+        createSyncPrimitives();
+    }
+
+    void VulkanRHI::prepareContext()
+    {
+        m_vk_current_command_buffer = m_vk_command_buffers[m_current_frame_index];
+        static_cast<VulkanCommandBuffer*>(m_current_command_buffer)->setResource(m_vk_current_command_buffer);
     }
 
     // 初始化Vulkan实例：设置应用名称、版本、拓展模块等
     void VulkanRHI::createInstance()
     {
         if (m_enable_validation_layers && !checkValidationLayerSupport())
-            LOG_ERROR("validation layers requested, but not available!");
+            LOG_ERROR("Vulkan validation layers requested, but not available!");
 
         m_vulkan_api_version = VK_API_VERSION_1_0;
 
@@ -202,6 +209,23 @@ namespace Piccolo
         static_cast<VulkanQueue*>(m_graphics_queue)->setResource(vk_graphics_queue); // 绑定资源
 
         vkGetDeviceQueue(m_device, m_queue_indices.present_family.value(), 0, &m_present_queue);
+
+        // create some function pointers that may not be available in some devices
+        fn_vk_begin_command_buffer =
+            reinterpret_cast<PFN_vkBeginCommandBuffer>(vkGetDeviceProcAddr(m_device, "vkBeginCommandBuffer"));
+        fn_vk_end_command_buffer =
+            reinterpret_cast<PFN_vkEndCommandBuffer>(vkGetDeviceProcAddr(m_device, "vkEndCommandBuffer"));
+        fn_vk_cmd_begin_render_pass =
+            reinterpret_cast<PFN_vkCmdBeginRenderPass>(vkGetDeviceProcAddr(m_device, "vkCmdBeginRenderPass"));
+        fn_vk_cmd_end_render_pass =
+            reinterpret_cast<PFN_vkCmdEndRenderPass>(vkGetDeviceProcAddr(m_device, "vkCmdEndRenderPass"));
+        fn_vk_cmd_bind_pipeline =
+            reinterpret_cast<PFN_vkCmdBindPipeline>(vkGetDeviceProcAddr(m_device, "vkCmdBindPipeline"));
+        fn_vk_cmd_set_viewport =
+            reinterpret_cast<PFN_vkCmdSetViewport>(vkGetDeviceProcAddr(m_device, "vkCmdSetViewport"));
+        fn_vk_cmd_set_scissor = reinterpret_cast<PFN_vkCmdSetScissor>(vkGetDeviceProcAddr(m_device, "vkCmdSetScissor"));
+        fn_vk_wait_for_fences = reinterpret_cast<PFN_vkWaitForFences>(vkGetDeviceProcAddr(m_device, "vkWaitForFences"));
+        fn_vk_reset_fences    = reinterpret_cast<PFN_vkResetFences>(vkGetDeviceProcAddr(m_device, "vkResetFences"));
     }
 
     // 创建交换链，选择最适合的属性
@@ -267,7 +291,7 @@ namespace Piccolo
 
         // 保存交换链中的图像所选择的格式与范围到成员变量
         m_swapchain_image_format = static_cast<RHIFormat>(chosen_surface_format.format);
-        m_swapchain_extent       = {chosen_extent.height, chosen_extent.width};
+        m_swapchain_extent       = {chosen_extent.width, chosen_extent.height};
     }
 
     // 创建交换链图像视图
@@ -300,7 +324,7 @@ namespace Piccolo
             VkCommandPoolCreateInfo command_pool_create_info {};
             command_pool_create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             command_pool_create_info.pNext            = nullptr;
-            command_pool_create_info.flags            = 0; // we won't reset the command
+            command_pool_create_info.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
             command_pool_create_info.queueFamilyIndex = m_queue_indices.graphics_family.value();
 
             for (auto& m_command_pool : m_command_pools)
@@ -332,6 +356,34 @@ namespace Piccolo
             m_vk_command_buffers[i] = vk_command_buffer;
             m_command_buffers[i]    = new VulkanCommandBuffer();
             static_cast<VulkanCommandBuffer*>(m_command_buffers[i])->setResource(vk_command_buffer);
+        }
+    }
+
+    // 创造同步元：信号量与栅栏
+    // semaphore : signal an image is ready for rendering // ready for presentation
+    // (m_vulkan_context._swapchain_images --> semaphores, fences)
+    void VulkanRHI::createSyncPrimitives()
+    {
+        // sem: thread will wait for another thread signal specific sem (it makes it > 0);
+        VkSemaphoreCreateInfo semaphore_create_info {};
+        semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        // thread will stop until the work(be fenced) has done
+        VkFenceCreateInfo fence_create_info {};
+        fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        // the fence is initialized as signaled to allow the first frame to be renderded
+        fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        for (uint32_t i = 0; i < m_k_max_frames_in_flight; i++)
+        {
+            if (vkCreateSemaphore(
+                    m_device, &semaphore_create_info, nullptr, &m_image_available_for_render_semaphores[i]) !=
+                    VK_SUCCESS ||
+                vkCreateSemaphore(
+                    m_device, &semaphore_create_info, nullptr, &m_image_finished_for_presentation_semaphores[i]) !=
+                    VK_SUCCESS ||
+                vkCreateFence(m_device, &fence_create_info, nullptr, &m_is_frame_in_flight_fences[i]) != VK_SUCCESS)
+                LOG_ERROR("Vulkan failed to  create semaphore");
         }
     }
 
@@ -923,6 +975,24 @@ namespace Piccolo
             return false;
         }
 
+        // specify the subpass dependency
+        std::vector<VkSubpassDependency> vk_subpass_depandecy(pCreateInfo->dependencyCount);
+        for (int i = 0; i < pCreateInfo->dependencyCount; ++i)
+        {
+            const auto& rhi_desc = pCreateInfo->pDependencies[i];
+            auto&       vk_desc  = vk_subpass_depandecy[i];
+
+            vk_desc.srcSubpass = rhi_desc.srcSubpass; // which will be depended on
+            vk_desc.dstSubpass = rhi_desc.dstSubpass; // which has dependency
+            // in which stage will the depend happen
+            vk_desc.srcStageMask = static_cast<VkPipelineStageFlags>((rhi_desc).srcStageMask);
+            vk_desc.dstStageMask = static_cast<VkPipelineStageFlags>((rhi_desc).dstStageMask);
+            // which operation needs dependency
+            vk_desc.srcAccessMask   = static_cast<VkAccessFlags>((rhi_desc).srcAccessMask);
+            vk_desc.dstAccessMask   = static_cast<VkAccessFlags>((rhi_desc).dstAccessMask);
+            vk_desc.dependencyFlags = static_cast<VkDependencyFlags>((rhi_desc).dependencyFlags);
+        };
+
         // render pass convert
         VkRenderPassCreateInfo create_info {};
         create_info.sType           = static_cast<VkStructureType>(pCreateInfo->sType);
@@ -930,6 +1000,8 @@ namespace Piccolo
         create_info.pAttachments    = vk_attachments.data();
         create_info.subpassCount    = pCreateInfo->subpassCount;
         create_info.pSubpasses      = vk_subpass_description.data();
+        create_info.dependencyCount = pCreateInfo->dependencyCount;
+        create_info.pDependencies   = vk_subpass_depandecy.data();
 
         pRenderPass = new VulkanRenderPass();
         VkRenderPass vk_render_pass;
@@ -949,7 +1021,7 @@ namespace Piccolo
         // image view
         int                      image_view_size = pCreateInfo->attachmentCount;
         std::vector<VkImageView> vk_image_view_list(image_view_size);
-        for (int i = 0; i < image_view_size; ++i)
+        for (int i = 0; i < image_view_size; i++)
         {
             const auto& rhi_image_view_element = pCreateInfo->pAttachments[i];
             auto&       vk_image_view_element  = vk_image_view_list[i];
@@ -982,6 +1054,8 @@ namespace Piccolo
         return RHI_SUCCESS;
     }
 
+    RHICommandBuffer* VulkanRHI::getCurrentCommandBuffer() const { return m_current_command_buffer; }
+
     RHISwapChainDesc VulkanRHI::getSwapchainInfo()
     {
         RHISwapChainDesc desc;
@@ -991,5 +1065,246 @@ namespace Piccolo
         desc.scissor      = &m_scissor;
         desc.imageViews   = m_swapchain_imageviews;
         return desc;
+    }
+
+    // 启动渲染过程
+    void VulkanRHI::cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
+                                          const RHIRenderPassBeginInfo* pRenderPassBegin,
+                                          RHISubpassContents            contents)
+    { // TODO: implement
+        VkOffset2D offset_2d {};
+        offset_2d.x = pRenderPassBegin->renderArea.offset.x;
+        offset_2d.y = pRenderPassBegin->renderArea.offset.y;
+
+        VkExtent2D extent_2d {};
+        extent_2d.width  = pRenderPassBegin->renderArea.extent.width;
+        extent_2d.height = pRenderPassBegin->renderArea.extent.height;
+
+        VkRect2D rect_2d {};
+        rect_2d.offset = offset_2d;
+        rect_2d.extent = extent_2d;
+
+        // clear_values
+        int                       clear_value_size = pRenderPassBegin->clearValueCount;
+        std::vector<VkClearValue> vk_clear_value_list(clear_value_size);
+        for (int i = 0; i < clear_value_size; ++i)
+        {
+            const auto& rhi_clear_value_element = pRenderPassBegin->pClearValues[i];
+            auto&       vk_clear_value_element  = vk_clear_value_list[i];
+
+            VkClearColorValue vk_clear_color_value;
+            vk_clear_color_value.float32[0] = rhi_clear_value_element.color.float32[0];
+            vk_clear_color_value.float32[1] = rhi_clear_value_element.color.float32[1];
+            vk_clear_color_value.float32[2] = rhi_clear_value_element.color.float32[2];
+            vk_clear_color_value.float32[3] = rhi_clear_value_element.color.float32[3];
+            vk_clear_color_value.int32[0]   = rhi_clear_value_element.color.int32[0];
+            vk_clear_color_value.int32[1]   = rhi_clear_value_element.color.int32[1];
+            vk_clear_color_value.int32[2]   = rhi_clear_value_element.color.int32[2];
+            vk_clear_color_value.int32[3]   = rhi_clear_value_element.color.int32[3];
+            vk_clear_color_value.uint32[0]  = rhi_clear_value_element.color.uint32[0];
+            vk_clear_color_value.uint32[1]  = rhi_clear_value_element.color.uint32[1];
+            vk_clear_color_value.uint32[2]  = rhi_clear_value_element.color.uint32[2];
+            vk_clear_color_value.uint32[3]  = rhi_clear_value_element.color.uint32[3];
+
+            VkClearDepthStencilValue vk_clear_depth_stencil_value;
+            vk_clear_depth_stencil_value.depth   = rhi_clear_value_element.depthStencil.depth;
+            vk_clear_depth_stencil_value.stencil = rhi_clear_value_element.depthStencil.stencil;
+
+            vk_clear_value_element.color        = vk_clear_color_value;
+            vk_clear_value_element.depthStencil = vk_clear_depth_stencil_value;
+        };
+
+        VkRenderPassBeginInfo vk_render_pass_begin_info {};
+        vk_render_pass_begin_info.sType = static_cast<VkStructureType>(pRenderPassBegin->sType);
+        vk_render_pass_begin_info.pNext = pRenderPassBegin->pNext;
+        vk_render_pass_begin_info.renderPass =
+            static_cast<VulkanRenderPass*>(pRenderPassBegin->renderPass)->getResource();
+        vk_render_pass_begin_info.framebuffer =
+            static_cast<VulkanFramebuffer*>(pRenderPassBegin->framebuffer)->getResource();
+        vk_render_pass_begin_info.renderArea      = rect_2d; // where the shader effects
+        vk_render_pass_begin_info.clearValueCount = pRenderPassBegin->clearValueCount;
+        vk_render_pass_begin_info.pClearValues    = vk_clear_value_list.data();
+
+        return fn_vk_cmd_begin_render_pass(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                           &vk_render_pass_begin_info,
+                                           static_cast<VkSubpassContents>(contents));
+    }
+
+    void VulkanRHI::cmdBindPipelinePFN(RHICommandBuffer*    commandBuffer,
+                                       RHIPipelineBindPoint pipelineBindPoint,
+                                       RHIPipeline*         pipeline)
+    {
+        return fn_vk_cmd_bind_pipeline(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                       static_cast<VkPipelineBindPoint>(pipelineBindPoint),
+                                       static_cast<VulkanPipeline*>(pipeline)->getResource());
+    }
+
+    void VulkanRHI::cmdDraw(RHICommandBuffer* commandBuffer,
+                            uint32_t          vertexCount,
+                            uint32_t          instanceCount,
+                            uint32_t          firstVertex,
+                            uint32_t          firstInstance)
+    {
+        vkCmdDraw(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                  vertexCount,
+                  instanceCount,
+                  firstVertex,
+                  firstInstance);
+    }
+
+    void VulkanRHI::cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer)
+    {
+        return fn_vk_cmd_end_render_pass(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource());
+    }
+
+    void VulkanRHI::cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
+                                      uint32_t           firstViewport,
+                                      uint32_t           viewportCount,
+                                      const RHIViewport* pViewports)
+    {
+        // viewport
+        int                     viewport_size = viewportCount;
+        std::vector<VkViewport> vk_viewport_list(viewport_size);
+        for (int i = 0; i < viewport_size; ++i)
+        {
+            const auto& rhi_viewport_element = pViewports[i];
+            auto&       vk_viewport_element  = vk_viewport_list[i];
+
+            vk_viewport_element.x        = rhi_viewport_element.x;
+            vk_viewport_element.y        = rhi_viewport_element.y;
+            vk_viewport_element.width    = rhi_viewport_element.width;
+            vk_viewport_element.height   = rhi_viewport_element.height;
+            vk_viewport_element.minDepth = rhi_viewport_element.minDepth;
+            vk_viewport_element.maxDepth = rhi_viewport_element.maxDepth;
+        };
+
+        return fn_vk_cmd_set_viewport(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                      firstViewport,
+                                      viewportCount,
+                                      vk_viewport_list.data());
+    }
+
+    void VulkanRHI::cmdSetScissorPFN(RHICommandBuffer* commandBuffer,
+                                     uint32_t          firstScissor,
+                                     uint32_t          scissorCount,
+                                     const RHIRect2D*  pScissors)
+    {
+        // rect_2d
+        int                   rect_2d_size = scissorCount;
+        std::vector<VkRect2D> vk_rect_2d_list(rect_2d_size);
+        for (int i = 0; i < rect_2d_size; ++i)
+        {
+            const auto& rhi_rect_2d_element = pScissors[i];
+            auto&       vk_rect_2d_element  = vk_rect_2d_list[i];
+
+            VkOffset2D offset_2d {};
+            offset_2d.x = rhi_rect_2d_element.offset.x;
+            offset_2d.y = rhi_rect_2d_element.offset.y;
+
+            VkExtent2D extent_2d {};
+            extent_2d.width  = rhi_rect_2d_element.extent.width;
+            extent_2d.height = rhi_rect_2d_element.extent.height;
+
+            vk_rect_2d_element.offset = VkOffset2D(offset_2d);
+            vk_rect_2d_element.extent = VkExtent2D(extent_2d);
+        };
+
+        return fn_vk_cmd_set_scissor(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                     firstScissor,
+                                     scissorCount,
+                                     vk_rect_2d_list.data());
+    }
+
+    void VulkanRHI::waitForFences()
+    {
+        if (fn_vk_wait_for_fences(
+                m_device, 1, &m_is_frame_in_flight_fences[m_current_frame_index], VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+            LOG_ERROR("Vulkan failed to synchronize fences!");
+    }
+
+    bool VulkanRHI::prepareBeforePass()
+    {
+        // acquire next image from swapchain
+        VkResult acquire_image_result =
+            vkAcquireNextImageKHR(m_device,
+                                  m_swapchain,
+                                  UINT64_MAX,
+                                  m_image_available_for_render_semaphores[m_current_frame_index],
+                                  VK_NULL_HANDLE,
+                                  &m_current_swapchain_image_index);
+
+        // begin command buffer
+        VkCommandBufferBeginInfo command_buffer_begin_info {};
+        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        // allow resubmit command buffer even if it is already in waiting list
+        command_buffer_begin_info.flags            = RHI_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        command_buffer_begin_info.pInheritanceInfo = nullptr;
+
+        if (fn_vk_begin_command_buffer(m_vk_command_buffers[m_current_frame_index], &command_buffer_begin_info) !=
+            VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan failed to begin recording command buffer!");
+            return false;
+        }
+        return RHI_SUCCESS;
+    }
+
+    void VulkanRHI::submitRendering()
+    {
+        // end command buffer
+        if (fn_vk_end_command_buffer(m_vk_command_buffers[m_current_frame_index]) != VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan EndCommandBuffer failed!");
+            return;
+        }
+
+        // submit command buffer
+        // signal(semaphore[])
+        VkSemaphore signal_semaphores[] = {m_image_finished_for_presentation_semaphores[m_current_frame_index]};
+        // wait for color attachment output
+        VkPipelineStageFlags wait_stages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        VkSubmitInfo         submit_info   = {};
+        submit_info.sType                  = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.waitSemaphoreCount     = 1;
+        submit_info.pWaitSemaphores        = &m_image_available_for_render_semaphores[m_current_frame_index];
+        submit_info.pWaitDstStageMask      = wait_stages;
+        submit_info.commandBufferCount     = 1;
+        submit_info.pCommandBuffers        = &m_vk_command_buffers[m_current_frame_index];
+        submit_info.signalSemaphoreCount   = 1;
+        submit_info.pSignalSemaphores      = signal_semaphores;
+
+        if (fn_vk_reset_fences(m_device, 1, &m_is_frame_in_flight_fences[m_current_frame_index]) != VK_SUCCESS)
+        { // reset fence state(unsignaled)
+            LOG_ERROR("Vulkan ResetFences failed!");
+            return;
+        }
+
+        // submit info(command buffer) to graphics queue family
+        if (vkQueueSubmit(static_cast<VulkanQueue*>(m_graphics_queue)->getResource(),
+                          1,
+                          &submit_info,
+                          // submit finished, allow another render
+                          m_is_frame_in_flight_fences[m_current_frame_index]) != VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan QueueSubmit failed!");
+            return;
+        }
+
+        // present swapchain
+        VkPresentInfoKHR present_info   = {};
+        present_info.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        present_info.waitSemaphoreCount = 1;
+        present_info.pWaitSemaphores    = &m_image_finished_for_presentation_semaphores[m_current_frame_index];
+        present_info.swapchainCount     = 1;
+        present_info.pSwapchains        = &m_swapchain;
+        present_info.pImageIndices      = &m_current_swapchain_image_index;
+
+        if (vkQueuePresentKHR(m_present_queue, &present_info) != VK_SUCCESS)
+        {
+            LOG_ERROR("Vulkan QueuePresent failed!");
+            return;
+        }
+
+        m_current_frame_index = (m_current_frame_index + 1) % m_k_max_frames_in_flight;
     }
 } // namespace Piccolo

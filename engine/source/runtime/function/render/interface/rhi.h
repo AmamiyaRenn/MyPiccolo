@@ -20,6 +20,7 @@ namespace Piccolo
     public:
         // initialize
         virtual void initialize(RHIInitInfo init_info) = 0;
+        virtual void prepareContext()                  = 0;
 
         // allocate and create
         virtual void       createSwapchain()                                                                       = 0;
@@ -34,7 +35,35 @@ namespace Piccolo
         virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)     = 0;
         virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pFramebuffer) = 0;
 
+        // command and command write
+        virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
+                                           const RHIRenderPassBeginInfo* pRenderPassBegin,
+                                           RHISubpassContents            contents)   = 0;
+        virtual void cmdBindPipelinePFN(RHICommandBuffer*    commandBuffer,
+                                        RHIPipelineBindPoint pipelineBindPoint,
+                                        RHIPipeline*         pipeline)            = 0;
+        virtual void cmdDraw(RHICommandBuffer* commandBuffer,
+                             uint32_t          vertexCount,
+                             uint32_t          instanceCount,
+                             uint32_t          firstVertex,
+                             uint32_t          firstInstance)                      = 0;
+        virtual void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer) = 0;
+        virtual void cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
+                                       uint32_t           firstViewport,
+                                       uint32_t           viewportCount,
+                                       const RHIViewport* pViewports)     = 0;
+        virtual void cmdSetScissorPFN(RHICommandBuffer* commandBuffer,
+                                      uint32_t          firstScissor,
+                                      uint32_t          scissorCount,
+                                      const RHIRect2D*  pScissors)         = 0;
+        virtual void waitForFences()                                      = 0;
+
         // query
-        virtual RHISwapChainDesc getSwapchainInfo() = 0;
+        virtual RHISwapChainDesc  getSwapchainInfo()              = 0;
+        virtual RHICommandBuffer* getCurrentCommandBuffer() const = 0;
+
+        // command write
+        virtual bool prepareBeforePass() = 0;
+        virtual void submitRendering()   = 0;
     };
 }; // namespace Piccolo

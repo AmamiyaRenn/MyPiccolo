@@ -38,9 +38,13 @@
 
 [LearningOpenGL CN](https://learnopengl-cn.github.io/)
 [vulkan-tutorial](https://vulkan-tutorial.com/)
+vulkan-tutorial，最好的 vulkan 入门教程
 [vulkan 编程指南](https://github.com/fangcun010/VulkanTutorialCN/blob/master/Vulkan%E7%BC%96%E7%A8%8B%E6%8C%87%E5%8D%97.pdf)
+vulkan-tutorial 的翻译版，内容较老，不推荐
 [vulkan-tutorial code](https://github.com/heitaoflower/vulkan-tutorial)
 
 ### 计算机科学
 
 [C++设计模式入门](https://www.bilibili.com/video/BV1Yr4y157Ci/?share_source=copy_web&vd_source=78fca262a252b90390c3caa57c3e6f1b)
+[南京大学 2022 操作系统-蒋炎岩](https://www.bilibili.com/video/BV1Cm4y1d7Ur/?share_source=copy_web&vd_source=78fca262a252b90390c3caa57c3e6f1b)
+南大蒋炎岩操作系统，看过都说好
