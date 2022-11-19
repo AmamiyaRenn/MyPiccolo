@@ -17,10 +17,10 @@
 在这一章中，我们将基于 Piccolo 的框架，画出一个三角形
 
 [第一节 从 0 开始创造一个窗口](https://zhuanlan.zhihu.com/p/583024686)
-
 [第二节 Vulkan_RHI 初始化](https://zhuanlan.zhihu.com/p/583980556)
-
 [第三节 设置图形管线 setupPipelines()](https://zhuanlan.zhihu.com/p/584238207)
+[第四节 最后的准备：渲染过程、组装管线、帧缓冲与命令缓冲](https://zhuanlan.zhihu.com/p/584449336)
+[第五节 你好，三角形！](https://zhuanlan.zhihu.com/p/584897287?)
 
 ## 参考资料
 
