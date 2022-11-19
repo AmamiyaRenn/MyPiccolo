@@ -1,0 +1,1028 @@
+{
+    "root": {
+        "data": {
+            "id": "cof2u9jg3000",
+            "created": 1668739661930,
+            "text": "main"
+        },
+        "children": [
+            {
+                "data": {
+                    "id": "cof2uyqfjjs0",
+                    "created": 1668739716772,
+                    "text": "engine->initialize",
+                    "layout": null
+                },
+                "children": [
+                    {
+                        "data": {
+                            "id": "cof2v3j799s0",
+                            "created": 1668739727219,
+                            "text": "g_runtime_global_context->startSystem",
+                            "expandState": "expand",
+                            "layout": null
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "cof2vgetfag0",
+                                    "created": 1668739755252,
+                                    "text": "m_window_system->initialize",
+                                    "layout": null
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "cof2zbu7jy00",
+                                            "created": 1668740058755,
+                                            "text": "glfwCreateWindow",
+                                            "layout": null
+                                        },
+                                        "children": []
+                                    }
+                                ]
+                            },
+                            {
+                                "data": {
+                                    "id": "cof2y20yxds0",
+                                    "created": 1668739959032,
+                                    "text": " m_render_system->initialize",
+                                    "layout": null
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "cof2zkuwzo00",
+                                            "created": 1668740078389,
+                                            "text": "m_rhi->initialize",
+                                            "layout": null,
+                                            "expandState": "collapse"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "cof32g8w8fs0",
+                                                    "created": 1668740303443,
+                                                    "text": "createInstance",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy52u5b2o0",
+                                                            "created": 1668827963752,
+                                                            "text": "checkValidationLayerSupport"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy7l2yvc80",
+                                                                    "created": 1668828160196,
+                                                                    "text": "vkEnumerateInstanceLayerProperties"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy5pedbnk0",
+                                                            "created": 1668828012864,
+                                                            "text": "getRequiredExtensions"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy5sh9y6w0",
+                                                                    "created": 1668828019570,
+                                                                    "text": "glfwGetRequiredInstanceExtensions"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy636dbdk0",
+                                                            "created": 1668828042856,
+                                                            "text": "populateDebugMessengerCreateInfo"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy6b77zkw0",
+                                                            "created": 1668828060321,
+                                                            "text": "vkCreateInstance"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof32lpbuzs0",
+                                                    "created": 1668740315320,
+                                                    "text": "initializeDebugMessenger",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy636dbdk0",
+                                                            "created": 1668828042856,
+                                                            "text": "populateDebugMessengerCreateInfo"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy6qldma80",
+                                                            "created": 1668828093829,
+                                                            "text": "createDebugUtilsMessengerEXT"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof32q1lacg0",
+                                                    "created": 1668740324769,
+                                                    "text": "createWindowSurface",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy70zipa00",
+                                                            "created": 1668828116452,
+                                                            "text": "glfwCreateWindowSurface"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof32st49200",
+                                                    "created": 1668740330787,
+                                                    "text": "initializePhysicalDevice",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy82ztmuo0",
+                                                            "created": 1668828199188,
+                                                            "text": "vkEnumeratePhysicalDevices"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy8ab51r40",
+                                                            "created": 1668828215110,
+                                                            "text": "vkGetPhysicalDeviceProperties // select best device"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy8wtnlwg0",
+                                                            "created": 1668828264119,
+                                                            "text": "isDeviceSuitable"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy90p2kc00",
+                                                                    "created": 1668828272549,
+                                                                    "text": "findQueueFamilies"
+                                                                },
+                                                                "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofy9gh8k740",
+                                                                            "created": 1668828306904,
+                                                                            "text": "vkGetPhysicalDeviceQueueFamilyProperties"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofy9poqh400",
+                                                                            "created": 1668828326948,
+                                                                            "text": "vkGetPhysicalDeviceSurfaceSupportKHR"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofya0fte8g0",
+                                                                            "created": 1668828350353,
+                                                                            "text": "// index queue family"
+                                                                        },
+                                                                        "children": []
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy971w4p40",
+                                                                    "created": 1668828286384,
+                                                                    "text": "checkDeviceExtensionSupport"
+                                                                },
+                                                                "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofyayxb0xc0",
+                                                                            "created": 1668828425421,
+                                                                            "text": "vkEnumerateDeviceExtensionProperties"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofyaztspi00",
+                                                                            "created": 1668828427386,
+                                                                            "text": "// check if all needed have been finded"
+                                                                        },
+                                                                        "children": []
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy9cfus0w0",
+                                                                    "created": 1668828298113,
+                                                                    "text": "querySwapChainSupport"
+                                                                },
+                                                                "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofybp5gekw0",
+                                                                            "created": 1668828482510,
+                                                                            "text": "vkGetPhysicalDeviceSurfaceCapabilitiesKHR"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofybsmt4kw0",
+                                                                            "created": 1668828490090,
+                                                                            "text": "vkGetPhysicalDeviceSurfaceFormatsKHR"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofyc0cqvmo0",
+                                                                            "created": 1668828506896,
+                                                                            "text": "vkGetPhysicalDeviceSurfacePresentModesKHR"
+                                                                        },
+                                                                        "children": []
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof32vb92u80",
+                                                    "created": 1668740336237,
+                                                    "text": "createLogicDevice",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy90p2kc00",
+                                                            "created": 1668828272549,
+                                                            "text": "findQueueFamilies",
+                                                            "expandState": "collapse"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy9gh8k740",
+                                                                    "created": 1668828306904,
+                                                                    "text": "vkGetPhysicalDeviceQueueFamilyProperties"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofy9poqh400",
+                                                                    "created": 1668828326948,
+                                                                    "text": "vkGetPhysicalDeviceSurfaceSupportKHR"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofya0fte8g0",
+                                                                    "created": 1668828350353,
+                                                                    "text": "// index queue family"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyctf1g6g0",
+                                                            "created": 1668828570161,
+                                                            "text": "vkCreateDevice",
+                                                            "expandState": "expand"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofycx7gbqg0",
+                                                            "created": 1668828578410,
+                                                            "text": "vkGetDeviceQueue"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofydg6zopk0",
+                                                            "created": 1668828619740,
+                                                            "text": "// create some function pointers"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof32xqrgn40",
+                                                    "created": 1668740341528,
+                                                    "text": "createSwapchain",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy9cfus0w0",
+                                                            "created": 1668828298113,
+                                                            "text": "querySwapChainSupport",
+                                                            "expandState": "collapse"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofybp5gekw0",
+                                                                    "created": 1668828482510,
+                                                                    "text": "vkGetPhysicalDeviceSurfaceCapabilitiesKHR"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofybsmt4kw0",
+                                                                    "created": 1668828490090,
+                                                                    "text": "vkGetPhysicalDeviceSurfaceFormatsKHR"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyc0cqvmo0",
+                                                                    "created": 1668828506896,
+                                                                    "text": "vkGetPhysicalDeviceSurfacePresentModesKHR"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofye66t7q00",
+                                                            "created": 1668828676326,
+                                                            "text": "chooseSwapchainSurfaceFormatFromDetails"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyeho2qlk0",
+                                                            "created": 1668828701314,
+                                                            "text": "chooseSwapchainPresentModeFromDetails"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyenvneaw0",
+                                                            "created": 1668828714833,
+                                                            "text": "chooseSwapchainExtentFromDetails"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyeqr6u3k0",
+                                                                    "created": 1668828721094,
+                                                                    "text": "glfwGetFramebufferSize"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyew3u3a80",
+                                                            "created": 1668828732742,
+                                                            "text": "vkCreateSwapchainKHR"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyf8e5lco0",
+                                                            "created": 1668828759488,
+                                                            "text": "vkGetSwapchainImagesKHR"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof330b50l40",
+                                                    "created": 1668740347114,
+                                                    "text": "createSwapchainImageViews",
+                                                    "layout": null
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyfiuhb6g0",
+                                                            "created": 1668828782243,
+                                                            "text": "createImageView"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyfn6702w0",
+                                                                    "created": 1668828791658,
+                                                                    "text": "vkCreateImageView"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof3331dcmo0",
+                                                    "created": 1668740353054,
+                                                    "text": "createCommandPool",
+                                                    "layout": null
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyfy41b0w0",
+                                                            "created": 1668828815472,
+                                                            "text": "vkCreateCommandPool"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof33670q2g0",
+                                                    "created": 1668740359926,
+                                                    "text": "createCommandBuffers",
+                                                    "layout": null
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofyg15svhc0",
+                                                            "created": 1668828822109,
+                                                            "text": "vkAllocateCommandBuffers"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cofygcwofig0",
+                                                    "created": 1668828847679,
+                                                    "text": "createSyncPrimitives",
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofygfyfaqg0",
+                                                            "created": 1668828854315,
+                                                            "text": "vkCreateSemaphore // *2"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofygjy9xiw0",
+                                                            "created": 1668828863013,
+                                                            "text": "vkCreateFence"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                "data": {
+                                    "id": "cof2ycf2sqo0",
+                                    "created": 1668739981653,
+                                    "text": "m_debugdraw_manager->initialize",
+                                    "layout": null
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "cof30o7tarc0",
+                                            "created": 1668740164063,
+                                            "text": "setupPipelines",
+                                            "layout": null,
+                                            "expandState": "expand"
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "cof30x9k25s0",
+                                                    "created": 1668740183760,
+                                                    "text": "m_debug_draw_pipeline[i]->initialize",
+                                                    "layout": null
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cof31al6hq80",
+                                                            "created": 1668740212761,
+                                                            "text": "setupRenderPass",
+                                                            "layout": null,
+                                                            "expandState": "collapse"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyj4o9wdc0",
+                                                                    "created": 1668829064849,
+                                                                    "text": "// discribe attachment"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyje7qiw00",
+                                                                    "created": 1668829085617,
+                                                                    "text": "// set the subpass attachment reference"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyjjoiil40",
+                                                                    "created": 1668829097515,
+                                                                    "text": "// describe subpass behavior"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyjowdzz40",
+                                                                    "created": 1668829108875,
+                                                                    "text": "// specify the subpass dependency"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyjzgwoag0",
+                                                                    "created": 1668829131884,
+                                                                    "text": "createRenderPass"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cof31dr5ti00",
+                                                            "created": 1668740219653,
+                                                            "text": "setupPipelines",
+                                                            "layout": null,
+                                                            "expandState": "collapse"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyk51wfso0",
+                                                                    "created": 1668829144037,
+                                                                    "text": "createShaderModule"
+                                                                },
+                                                                "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofykfv6mxk0",
+                                                                            "created": 1668829167576,
+                                                                            "text": "vkCreateShaderModule"
+                                                                        },
+                                                                        "children": []
+                                                                    }
+                                                                ]
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofykla04ww0",
+                                                                    "created": 1668829179356,
+                                                                    "text": "// create vertex/fragment stage info"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofykxg3pvc0",
+                                                                    "created": 1668829205846,
+                                                                    "text": "// set vertex input information"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyl09os6g0",
+                                                                    "created": 1668829211988,
+                                                                    "text": "// set vertex input assembly rule"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyl3gdkkg0",
+                                                                    "created": 1668829218923,
+                                                                    "text": "// set viewport/scissor change stage info"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofylbg99c80",
+                                                                    "created": 1668829236330,
+                                                                    "text": "// set rasterization info"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofylgrpnz40",
+                                                                    "created": 1668829247907,
+                                                                    "text": "// set MSAA information"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofylkqkcv40",
+                                                                    "created": 1668829256545,
+                                                                    "text": "// set color blend rule each/global"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofym0gdqs80",
+                                                                    "created": 1668829290757,
+                                                                    "text": "// some settings can be dynamic"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofym8xkl7k0",
+                                                                    "created": 1668829309211,
+                                                                    "text": "// glsl uniform can be specified in Pipelinelayout"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofymtopyz40",
+                                                                    "created": 1668829354388,
+                                                                    "text": "createGraphicsPipelines"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cof31i1hico0",
+                                                            "created": 1668740228984,
+                                                            "text": "setupFramebuffer",
+                                                            "layout": null,
+                                                            "expandState": "collapse"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyndfesvc0",
+                                                                    "created": 1668829397361,
+                                                                    "text": "createFramebuffer"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "data": {
+                    "id": "cof2vy5kdkg0",
+                    "created": 1668739793874,
+                    "text": "editor->initialize",
+                    "layout": null
+                },
+                "children": []
+            },
+            {
+                "data": {
+                    "id": "cof2wa50uhk0",
+                    "created": 1668739819963,
+                    "text": "editor->run //main loop",
+                    "layout": null,
+                    "note": null
+                },
+                "children": [
+                    {
+                        "data": {
+                            "id": "cof2wjmuzmg0",
+                            "created": 1668739840632,
+                            "text": "engine_runtime->tickOneFrame",
+                            "layout": null
+                        },
+                        "children": [
+                            {
+                                "data": {
+                                    "id": "cof2xayl3y80",
+                                    "created": 1668739900115,
+                                    "text": "rendererTick",
+                                    "layout": null
+                                },
+                                "children": [
+                                    {
+                                        "data": {
+                                            "id": "cofy32l6v480",
+                                            "created": 1668827806482,
+                                            "text": "m_rhi->prepareContext"
+                                        },
+                                        "children": []
+                                    },
+                                    {
+                                        "data": {
+                                            "id": "cof2xfv8btc0",
+                                            "created": 1668739910796,
+                                            "text": "forwardRender",
+                                            "layout": null
+                                        },
+                                        "children": [
+                                            {
+                                                "data": {
+                                                    "id": "cofxnhbfpq80",
+                                                    "created": 1668826584718,
+                                                    "text": "vulkan_rhi->waitForFences"
+                                                },
+                                                "children": []
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof398nqawo0",
+                                                    "created": 1668740835475,
+                                                    "text": "vulkan_rhi->prepareBeforePass",
+                                                    "layout": null,
+                                                    "expandState": "expand"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy3ze4cv40",
+                                                            "created": 1668827877889,
+                                                            "text": "vkAcquireNextImageKHR"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyryrj0hk0",
+                                                                    "created": 1668829757263,
+                                                                    "text": "// graphics(render) sem signal"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofy46czja80",
+                                                            "created": 1668827893058,
+                                                            "text": "vkBeginCommandBuffer"
+                                                        },
+                                                        "children": []
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cofxo8df2ds0",
+                                                    "created": 1668826643611,
+                                                    "text": "m_rhi->cmdSetViewportPFN"
+                                                },
+                                                "children": []
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cofxoc9ez9c0",
+                                                    "created": 1668826652076,
+                                                    "text": "m_rhi->cmdSetVScissorPFN"
+                                                },
+                                                "children": []
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cof34jz9b340",
+                                                    "created": 1668740468295,
+                                                    "text": "g_runtime_global_context.m_debugdraw_manager->draw",
+                                                    "expandState": "expand",
+                                                    "layout": null
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cof34qb2yu80",
+                                                            "created": 1668740482071,
+                                                            "text": "drawDebugObject",
+                                                            "layout": null
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cof3506ntcg0",
+                                                                    "created": 1668740503572,
+                                                                    "text": "drawPointLineTriangleBox",
+                                                                    "layout": null
+                                                                },
+                                                                "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cof35o0rl600",
+                                                                            "created": 1668740555458,
+                                                                            "text": "m_rhi->cmdBeginRenderPassPFN",
+                                                                            "layout": null
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofxqq3op140",
+                                                                            "created": 1668826838933,
+                                                                            "text": "m_rhi->cmdBindPipelinePFN"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofxqtm4d0o0",
+                                                                            "created": 1668826846578,
+                                                                            "text": "m_rhi->cmdDraw"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cofxqxo2iqo0",
+                                                                            "created": 1668826855403,
+                                                                            "text": "m_rhi->cmdEndRenderPassPFN"
+                                                                        },
+                                                                        "children": []
+                                                                    }
+                                                                ]
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            },
+                                            {
+                                                "data": {
+                                                    "id": "cofxotamjfs0",
+                                                    "created": 1668826689154,
+                                                    "text": "vulkan_rhi->submitRendering"
+                                                },
+                                                "children": [
+                                                    {
+                                                        "data": {
+                                                            "id": "cofxp4o6k1k0",
+                                                            "created": 1668826713919,
+                                                            "text": "vkEndCommandBuffer"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofxq5883ew0",
+                                                            "created": 1668826793495,
+                                                            "text": "vkResetFences // fence reset"
+                                                        },
+                                                        "children": []
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofxqak2tq80",
+                                                            "created": 1668826805095,
+                                                            "text": "vkQueueSubmit"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyqtzs8c80",
+                                                                    "created": 1668829668514,
+                                                                    "text": "// graphics sem wait"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyyekg8sw0",
+                                                                    "created": 1668830261848,
+                                                                    "text": "// present sem signal"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyr0dbcv40",
+                                                                    "created": 1668829682393,
+                                                                    "text": "// fence signal"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
+                                                            "id": "cofxqd0ei8o0",
+                                                            "created": 1668826810436,
+                                                            "text": "vkQueuePresentKHR"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "cofyrbqhdeg0",
+                                                                    "created": 1668829707134,
+                                                                    "text": "// present sem wait"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    "template": "filetree",
+    "theme": "snow-compact",
+    "version": "1.4.43"
+}
