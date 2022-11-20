@@ -12,7 +12,7 @@
 
 ## 目录
 
-### 第一章 创世
+### 第一章 创世——画个三角形第一章 创世
 
 在这一章中，我们将基于 Piccolo 的框架，画出一个三角形
 
@@ -21,6 +21,12 @@
 [第三节 设置图形管线 setupPipelines()](https://zhuanlan.zhihu.com/p/584238207)
 [第四节 最后的准备：渲染过程、组装管线、帧缓冲与命令缓冲](https://zhuanlan.zhihu.com/p/584449336)
 [第五节 你好，三角形！](https://zhuanlan.zhihu.com/p/584897287?)
+[第六节 小结：程序流程图](https://zhuanlan.zhihu.com/p/584953972)
+
+### 第二章 新世界的居民——模型导入
+
+在这一章中，我们会尝试导入模型
+[第一节 缩放窗口](https://zhuanlan.zhihu.com/p/585119200)
 
 ## 参考资料
 
