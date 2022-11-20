@@ -246,4 +246,12 @@ namespace Piccolo
                 LOG_ERROR("create inefficient pick framebuffer");
         }
     }
+
+    // rebuild the framebuffer
+    void DebugDrawPipeline::recreateAfterSwapchain()
+    {
+        for (auto* framebuffer : m_framebuffer.framebuffers)
+            m_rhi->destroyFramebuffer(framebuffer);
+        setupFramebuffer();
+    }
 } // namespace Piccolo

@@ -22,5 +22,8 @@ namespace Piccolo
             glfwTerminate();
             return; // 失败后终止
         }
+
+        // Setup input callbacks
+        // glfwSetWindowUserPointer(m_window, this);
     }
 } // namespace Piccolo

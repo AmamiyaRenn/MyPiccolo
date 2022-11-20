@@ -1067,6 +1067,37 @@ namespace Piccolo
         return desc;
     }
 
+    // 重建交换链
+    void VulkanRHI::recreateSwapchain()
+    {
+        // get current window width and height
+        int width  = 0;
+        int height = 0;
+        glfwGetFramebufferSize(m_window, &width, &height);
+        while (width == 0 || height == 0) // minimized 0,0, pause for now
+        {
+            glfwGetFramebufferSize(m_window, &width, &height);
+            glfwWaitEvents(); // pause
+        }
+
+        if (fn_vk_wait_for_fences(
+                m_device, m_k_max_frames_in_flight, m_is_frame_in_flight_fences, VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+        {
+            LOG_ERROR("vkWaitForFences failed");
+            return;
+        }
+
+        // destroy old swapchain(and the associated imageview)
+        for (auto* imageview : m_swapchain_imageviews)
+            vkDestroyImageView(m_device, static_cast<VulkanImageView*>(imageview)->getResource(), nullptr);
+        vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+
+        // create new swapchain(and the associated imageview)
+        createSwapchain();
+        createSwapchainImageViews();
+        // createFramebufferImageAndView();
+    }
+
     // 启动渲染过程
     void VulkanRHI::cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
                                           const RHIRenderPassBeginInfo* pRenderPassBegin,
@@ -1222,7 +1253,7 @@ namespace Piccolo
             LOG_ERROR("Vulkan failed to synchronize fences!");
     }
 
-    bool VulkanRHI::prepareBeforePass()
+    bool VulkanRHI::prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain)
     {
         // acquire next image from swapchain
         VkResult acquire_image_result =
@@ -1233,11 +1264,23 @@ namespace Piccolo
                                   VK_NULL_HANDLE,
                                   &m_current_swapchain_image_index);
 
+        if (VK_ERROR_OUT_OF_DATE_KHR == acquire_image_result)
+        { // swapchain is not compatible with surface, should recreate swapchain
+            recreateSwapchain();
+            passUpdateAfterRecreateSwapchain();
+            return RHI_SUCCESS;
+        }
+        else if (VK_SUCCESS != acquire_image_result && VK_SUBOPTIMAL_KHR != acquire_image_result)
+        { // sucess || not completely compatible with surface but swapchain can present at surface
+            LOG_ERROR("vkAcquireNextImageKHR failed!");
+            return false;
+        }
+
         // begin command buffer
         VkCommandBufferBeginInfo command_buffer_begin_info {};
         command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         // allow resubmit command buffer even if it is already in waiting list
-        command_buffer_begin_info.flags            = RHI_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        command_buffer_begin_info.flags            = 0;
         command_buffer_begin_info.pInheritanceInfo = nullptr;
 
         if (fn_vk_begin_command_buffer(m_vk_command_buffers[m_current_frame_index], &command_buffer_begin_info) !=
@@ -1249,7 +1292,7 @@ namespace Piccolo
         return RHI_SUCCESS;
     }
 
-    void VulkanRHI::submitRendering()
+    void VulkanRHI::submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain)
     {
         // end command buffer
         if (fn_vk_end_command_buffer(m_vk_command_buffers[m_current_frame_index]) != VK_SUCCESS)
@@ -1299,12 +1342,26 @@ namespace Piccolo
         present_info.pSwapchains        = &m_swapchain;
         present_info.pImageIndices      = &m_current_swapchain_image_index;
 
-        if (vkQueuePresentKHR(m_present_queue, &present_info) != VK_SUCCESS)
+        VkResult present_result = vkQueuePresentKHR(m_present_queue, &present_info);
+        if (VK_ERROR_OUT_OF_DATE_KHR == present_result || VK_SUBOPTIMAL_KHR == present_result)
+        { // when the present result isn't best, should recreate swapchain
+            recreateSwapchain();
+            passUpdateAfterRecreateSwapchain();
+        }
+        else
         {
-            LOG_ERROR("Vulkan QueuePresent failed!");
-            return;
+            if (VK_SUCCESS != present_result)
+            {
+                LOG_ERROR("vkQueuePresentKHR failed!");
+                return;
+            }
         }
 
         m_current_frame_index = (m_current_frame_index + 1) % m_k_max_frames_in_flight;
+    }
+
+    void VulkanRHI::destroyFramebuffer(RHIFramebuffer* framebuffer)
+    {
+        vkDestroyFramebuffer(m_device, static_cast<VulkanFramebuffer*>(framebuffer)->getResource(), nullptr);
     }
 } // namespace Piccolo

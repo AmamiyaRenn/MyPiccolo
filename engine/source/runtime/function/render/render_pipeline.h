@@ -8,5 +8,7 @@ namespace Piccolo
     {
     public:
         void forwardRender(std::shared_ptr<RHI> rhi, std::shared_ptr<RenderResourceBase> render_resource);
+
+        void passUpdateAfterRecreateSwapchain();
     };
 } // namespace Piccolo

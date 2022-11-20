@@ -34,6 +34,7 @@ namespace Piccolo
                                                 RHIPipelineLayout*&                pPipelineLayout)                               = 0;
         virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)     = 0;
         virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pFramebuffer) = 0;
+        virtual void recreateSwapchain()                                                                           = 0;
 
         // command and command write
         virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
@@ -63,7 +64,10 @@ namespace Piccolo
         virtual RHICommandBuffer* getCurrentCommandBuffer() const = 0;
 
         // command write
-        virtual bool prepareBeforePass() = 0;
-        virtual void submitRendering()   = 0;
+        virtual bool prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) = 0;
+        virtual void submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain)   = 0;
+
+        // destroy
+        virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) = 0;
     };
 }; // namespace Piccolo

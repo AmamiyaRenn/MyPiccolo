@@ -43,6 +43,8 @@ namespace Piccolo
         const DebugDrawFramebuffer&  getFramebuffer() const { return m_framebuffer; }
         const DebugDrawPipelineBase& getPipeline() const { return m_render_pipelines[0]; }
 
+        void recreateAfterSwapchain();
+
     private:
         void setupRenderPass();
         void setupPipelines();

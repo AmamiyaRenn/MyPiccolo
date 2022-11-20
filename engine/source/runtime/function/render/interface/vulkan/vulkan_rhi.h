@@ -35,6 +35,7 @@ namespace Piccolo
         virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) override;
         virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo,
                                        RHIFramebuffer*&                pFramebuffer) override;
+        void         recreateSwapchain() override;
 
         // command and command write
         virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
@@ -64,10 +65,13 @@ namespace Piccolo
         virtual RHICommandBuffer* getCurrentCommandBuffer() const override;
 
         // command write
-        virtual bool prepareBeforePass() override;
-        virtual void submitRendering() override;
+        virtual bool prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) override;
+        virtual void submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain) override;
 
-        static uint8_t const m_k_max_frames_in_flight {1}; // 最大同时渲染的图片数量
+        // destroy
+        virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) override;
+
+        static uint8_t const m_k_max_frames_in_flight {3}; // 最大同时渲染的图片数量
 
         RHIQueue* m_graphics_queue {nullptr}; // 图形队列句柄
 

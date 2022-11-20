@@ -11,6 +11,7 @@ namespace Piccolo
     public:
         void initialize();
         void setupPipelines();
+        void updateAfterRecreateSwapchain();
 
         void draw(uint32_t current_swapchain_image_index);
 

@@ -20,6 +20,13 @@ namespace Piccolo
         }
     }
 
+    // rebuild all pipelines' framebuffers
+    void DebugDrawManager::updateAfterRecreateSwapchain()
+    {
+        for (auto& i : m_debug_draw_pipeline)
+            i->recreateAfterSwapchain();
+    }
+
     void DebugDrawManager::drawPointLineTriangleBox(uint32_t current_swapchain_image_index)
     {
         std::vector<DebugDrawPipeline*> vc_pipelines {
