@@ -19,57 +19,74 @@ namespace Piccolo
     {
     public:
         // initialize
-        virtual void initialize(RHIInitInfo init_info) override final;
-        virtual void prepareContext() override final;
+        void initialize(RHIInitInfo init_info) override final;
+        void prepareContext() override final;
 
         // allocate and create
-        virtual void       createSwapchain() override;
-        virtual void       createSwapchainImageViews() override;
-        virtual RHIShader* createShaderModule(const std::vector<unsigned char>& shader_code) override;
-        virtual bool       createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
-                                                   uint32_t                             createInfoCount,
-                                                   const RHIGraphicsPipelineCreateInfo* pCreateInfos,
-                                                   RHIPipeline*&                        pPipelines) override;
-        virtual bool       createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
-                                                RHIPipelineLayout*&                pPipelineLayout) override;
-        virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) override;
-        virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo,
-                                       RHIFramebuffer*&                pFramebuffer) override;
-        void         recreateSwapchain() override;
+        void       createSwapchain() override;
+        void       createSwapchainImageViews() override;
+        RHIShader* createShaderModule(const std::vector<unsigned char>& shader_code) override;
+        bool       createGraphicsPipelines(RHIPipelineCache*                    pipelineCache,
+                                           uint32_t                             createInfoCount,
+                                           const RHIGraphicsPipelineCreateInfo* pCreateInfos,
+                                           RHIPipeline*&                        pPipelines) override;
+        bool       createPipelineLayout(const RHIPipelineLayoutCreateInfo* pCreateInfo,
+                                        RHIPipelineLayout*&                pPipelineLayout) override;
+        bool       createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) override;
+        bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pFramebuffer) override;
+        void recreateSwapchain() override;
+        void createBuffer(RHIDeviceSize          size,
+                          RHIBufferUsageFlags    usage,
+                          RHIMemoryPropertyFlags properties,
+                          RHIBuffer*&            buffer,
+                          RHIDeviceMemory*&      buffer_memory) override;
 
         // command and command write
-        virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
-                                           const RHIRenderPassBeginInfo* pRenderPassBegin,
-                                           RHISubpassContents            contents) override;
-        virtual void cmdBindPipelinePFN(RHICommandBuffer*    commandBuffer,
-                                        RHIPipelineBindPoint pipelineBindPoint,
-                                        RHIPipeline*         pipeline) override;
-        virtual void cmdDraw(RHICommandBuffer* commandBuffer,
-                             uint32_t          vertexCount,
-                             uint32_t          instanceCount,
-                             uint32_t          firstVertex,
-                             uint32_t          firstInstance) override;
-        virtual void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer) override;
-        void         cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
-                                       uint32_t           firstViewport,
-                                       uint32_t           viewportCount,
-                                       const RHIViewport* pViewports) override;
-        void         cmdSetScissorPFN(RHICommandBuffer* commandBuffer,
-                                      uint32_t          firstScissor,
-                                      uint32_t          scissorCount,
-                                      const RHIRect2D*  pScissors) override;
-        virtual void waitForFences() override;
+        void cmdBindVertexBuffersPFN(RHICommandBuffer*    commandBuffer,
+                                     uint32_t             firstBinding,
+                                     uint32_t             bindingCount,
+                                     RHIBuffer* const*    pBuffers,
+                                     const RHIDeviceSize* pOffsets) override;
+        void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
+                                   const RHIRenderPassBeginInfo* pRenderPassBegin,
+                                   RHISubpassContents            contents) override;
+        void cmdBindPipelinePFN(RHICommandBuffer*    commandBuffer,
+                                RHIPipelineBindPoint pipelineBindPoint,
+                                RHIPipeline*         pipeline) override;
+        void cmdDraw(RHICommandBuffer* commandBuffer,
+                     uint32_t          vertexCount,
+                     uint32_t          instanceCount,
+                     uint32_t          firstVertex,
+                     uint32_t          firstInstance) override;
+        void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer) override;
+        void cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
+                               uint32_t           firstViewport,
+                               uint32_t           viewportCount,
+                               const RHIViewport* pViewports) override;
+        void cmdSetScissorPFN(RHICommandBuffer* commandBuffer,
+                              uint32_t          firstScissor,
+                              uint32_t          scissorCount,
+                              const RHIRect2D*  pScissors) override;
+        void waitForFences() override;
 
         // query
-        virtual RHISwapChainDesc  getSwapchainInfo() override;
-        virtual RHICommandBuffer* getCurrentCommandBuffer() const override;
+        RHISwapChainDesc  getSwapchainInfo() override;
+        RHICommandBuffer* getCurrentCommandBuffer() const override;
 
         // command write
-        virtual bool prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) override;
-        virtual void submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain) override;
+        bool prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) override;
+        void submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain) override;
 
         // destroy
-        virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) override;
+        void destroyFramebuffer(RHIFramebuffer* framebuffer) override;
+
+        // memory
+        bool mapMemory(RHIDeviceMemory*  memory,
+                       RHIDeviceSize     offset,
+                       RHIDeviceSize     size,
+                       RHIMemoryMapFlags flags,
+                       void**            ppData) override;
+        void unmapMemory(RHIDeviceMemory* memory) override;
 
         static uint8_t const m_k_max_frames_in_flight {3}; // 最大同时渲染的图片数量
 
@@ -113,15 +130,16 @@ namespace Piccolo
         uint32_t m_current_swapchain_image_index;
 
         // function pointers
-        PFN_vkBeginCommandBuffer fn_vk_begin_command_buffer;
-        PFN_vkEndCommandBuffer   fn_vk_end_command_buffer;
-        PFN_vkCmdBeginRenderPass fn_vk_cmd_begin_render_pass;
-        PFN_vkCmdEndRenderPass   fn_vk_cmd_end_render_pass;
-        PFN_vkCmdBindPipeline    fn_vk_cmd_bind_pipeline;
-        PFN_vkCmdSetViewport     fn_vk_cmd_set_viewport;
-        PFN_vkCmdSetScissor      fn_vk_cmd_set_scissor;
-        PFN_vkWaitForFences      fn_vk_wait_for_fences;
-        PFN_vkResetFences        fn_vk_reset_fences;
+        PFN_vkBeginCommandBuffer   fn_vk_begin_command_buffer;
+        PFN_vkEndCommandBuffer     fn_vk_end_command_buffer;
+        PFN_vkCmdBindVertexBuffers fn_vk_cmd_bind_vertex_buffers;
+        PFN_vkCmdBeginRenderPass   fn_vk_cmd_begin_render_pass;
+        PFN_vkCmdEndRenderPass     fn_vk_cmd_end_render_pass;
+        PFN_vkCmdBindPipeline      fn_vk_cmd_bind_pipeline;
+        PFN_vkCmdSetViewport       fn_vk_cmd_set_viewport;
+        PFN_vkCmdSetScissor        fn_vk_cmd_set_scissor;
+        PFN_vkWaitForFences        fn_vk_wait_for_fences;
+        PFN_vkResetFences          fn_vk_reset_fences;
 
     private:
         void createInstance();

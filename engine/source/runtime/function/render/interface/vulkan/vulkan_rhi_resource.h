@@ -104,4 +104,22 @@ namespace Piccolo
     private:
         VkSemaphore m_resource;
     };
+    class VulkanBuffer : public RHIBuffer
+    {
+    public:
+        void     setResource(VkBuffer res) { m_resource = res; }
+        VkBuffer getResource() const { return m_resource; }
+
+    private:
+        VkBuffer m_resource;
+    };
+    class VulkanDeviceMemory : public RHIDeviceMemory
+    {
+    public:
+        void           setResource(VkDeviceMemory res) { m_resource = res; }
+        VkDeviceMemory getResource() const { return m_resource; }
+
+    private:
+        VkDeviceMemory m_resource;
+    };
 } // namespace Piccolo

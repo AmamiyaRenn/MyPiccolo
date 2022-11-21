@@ -57,7 +57,9 @@ namespace Piccolo
     void VulkanRHI::createInstance()
     {
         if (m_enable_validation_layers && !checkValidationLayerSupport())
+        {
             LOG_ERROR("Vulkan validation layers requested, but not available!");
+        }
 
         m_vulkan_api_version = VK_API_VERSION_1_0;
 
@@ -96,7 +98,9 @@ namespace Piccolo
 
         // create vulkan_context._instance
         if (vkCreateInstance(&instance_create_info, nullptr, &m_instance) != VK_SUCCESS)
+        {
             LOG_ERROR("Vk create instance failed!");
+        }
     }
 
     // 启动验证层从而在debug版本中发现可能存在的错误
@@ -107,7 +111,9 @@ namespace Piccolo
             VkDebugUtilsMessengerCreateInfoEXT create_info;
             populateDebugMessengerCreateInfo(create_info);
             if (createDebugUtilsMessengerEXT(m_instance, &create_info, nullptr, &m_debug_messenger) != VK_SUCCESS)
+            {
                 LOG_ERROR("Failed to set debug messenger!");
+            }
         }
     }
 
@@ -115,7 +121,9 @@ namespace Piccolo
     void VulkanRHI::createWindowSurface()
     {
         if (glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS)
+        {
             LOG_ERROR("glfwCreateWindowSurface failed!");
+        }
     }
 
     // 选择物理设备，并进行一些兼容性检查（比如你的rtx2060）
@@ -124,7 +132,9 @@ namespace Piccolo
         uint32_t physical_device_count = 0;
         vkEnumeratePhysicalDevices(m_instance, &physical_device_count, nullptr);
         if (physical_device_count == 0)
+        {
             LOG_ERROR("Enumerate physical devices failed!");
+        }
         else
         {
             // find one device that matches our requirement
@@ -161,7 +171,9 @@ namespace Piccolo
                 }
 
             if (m_physical_device == VK_NULL_HANDLE)
+            {
                 LOG_ERROR("Failed to find suitable physical device!");
+            }
         }
     }
 
@@ -200,7 +212,9 @@ namespace Piccolo
         device_create_info.enabledLayerCount       = 0;
 
         if (vkCreateDevice(m_physical_device, &device_create_info, nullptr, &m_device) != VK_SUCCESS)
+        {
             LOG_ERROR("Failed create logic device!");
+        }
 
         // initialize queues of this device
         VkQueue vk_graphics_queue;
@@ -215,6 +229,8 @@ namespace Piccolo
             reinterpret_cast<PFN_vkBeginCommandBuffer>(vkGetDeviceProcAddr(m_device, "vkBeginCommandBuffer"));
         fn_vk_end_command_buffer =
             reinterpret_cast<PFN_vkEndCommandBuffer>(vkGetDeviceProcAddr(m_device, "vkEndCommandBuffer"));
+        fn_vk_cmd_bind_vertex_buffers =
+            reinterpret_cast<PFN_vkCmdBindVertexBuffers>(vkGetDeviceProcAddr(m_device, "vkCmdBindVertexBuffers"));
         fn_vk_cmd_begin_render_pass =
             reinterpret_cast<PFN_vkCmdBeginRenderPass>(vkGetDeviceProcAddr(m_device, "vkCmdBeginRenderPass"));
         fn_vk_cmd_end_render_pass =
@@ -282,7 +298,9 @@ namespace Piccolo
         create_info.oldSwapchain = VK_NULL_HANDLE; // 交换链重新创建的设置，此处假定不会重新创建
 
         if (vkCreateSwapchainKHR(m_device, &create_info, nullptr, &m_swapchain) != VK_SUCCESS)
+        {
             LOG_ERROR("Vk create swapchain khr failed!");
+        }
 
         // 虽然已经显式的指明了image数量，但vulkan实际上可能创造更多，所以需要查询一次
         vkGetSwapchainImagesKHR(m_device, m_swapchain, &image_count, nullptr);
@@ -329,7 +347,9 @@ namespace Piccolo
 
             for (auto& m_command_pool : m_command_pools)
                 if (vkCreateCommandPool(m_device, &command_pool_create_info, nullptr, &m_command_pool) != VK_SUCCESS)
+                {
                     LOG_ERROR("Vulkan failed to create command pool");
+                }
         }
     }
 
@@ -351,7 +371,9 @@ namespace Piccolo
             command_buffer_allocate_info.commandPool = m_command_pools[i];
             VkCommandBuffer vk_command_buffer;
             if (vkAllocateCommandBuffers(m_device, &command_buffer_allocate_info, &vk_command_buffer) != VK_SUCCESS)
+            {
                 LOG_ERROR("Vulkan failed to allocate command buffers!");
+            }
             // command buffer resource binding
             m_vk_command_buffers[i] = vk_command_buffer;
             m_command_buffers[i]    = new VulkanCommandBuffer();
@@ -383,7 +405,9 @@ namespace Piccolo
                     m_device, &semaphore_create_info, nullptr, &m_image_finished_for_presentation_semaphores[i]) !=
                     VK_SUCCESS ||
                 vkCreateFence(m_device, &fence_create_info, nullptr, &m_is_frame_in_flight_fences[i]) != VK_SUCCESS)
+            {
                 LOG_ERROR("Vulkan failed to  create semaphore");
+            }
         }
     }
 
@@ -655,7 +679,7 @@ namespace Piccolo
                 static_cast<VkVertexInputRate>(rhi_vertex_input_binding_description_element.inputRate);
         };
 
-        // set aside
+        // specify the vertex input attribute
         int vertex_input_attribute_description_size = pCreateInfo->pVertexInputState->vertexAttributeDescriptionCount;
         std::vector<VkVertexInputAttributeDescription> vk_vertex_input_attribute_description_list(
             vertex_input_attribute_description_size);
@@ -1098,6 +1122,58 @@ namespace Piccolo
         // createFramebufferImageAndView();
     }
 
+    void VulkanRHI::createBuffer(RHIDeviceSize          size,
+                                 RHIBufferUsageFlags    usage,
+                                 RHIMemoryPropertyFlags properties,
+                                 RHIBuffer*&            buffer,
+                                 RHIDeviceMemory*&      buffer_memory)
+    {
+        VkBuffer       vk_buffer;
+        VkDeviceMemory vk_device_memory;
+
+        VulkanUtil::createBuffer(m_physical_device, m_device, size, usage, properties, vk_buffer, vk_device_memory);
+
+        buffer        = new VulkanBuffer();
+        buffer_memory = new VulkanDeviceMemory();
+        static_cast<VulkanBuffer*>(buffer)->setResource(vk_buffer);
+        static_cast<VulkanDeviceMemory*>(buffer_memory)->setResource(vk_device_memory);
+    }
+
+    void VulkanRHI::cmdBindVertexBuffersPFN(RHICommandBuffer*    commandBuffer,
+                                            uint32_t             firstBinding,
+                                            uint32_t             bindingCount,
+                                            RHIBuffer* const*    pBuffers,
+                                            const RHIDeviceSize* pOffsets)
+    {
+        // buffer
+        int                   buffer_size = bindingCount;
+        std::vector<VkBuffer> vk_buffer_list(buffer_size);
+        for (int i = 0; i < buffer_size; ++i)
+        {
+            const auto& rhi_buffer_element = pBuffers[i];
+            auto&       vk_buffer_element  = vk_buffer_list[i];
+
+            vk_buffer_element = static_cast<VulkanBuffer*>(rhi_buffer_element)->getResource();
+        };
+
+        // offset
+        int                       offset_size = bindingCount;
+        std::vector<VkDeviceSize> vk_device_size_list(offset_size);
+        for (int i = 0; i < offset_size; ++i)
+        {
+            const auto& rhi_offset_element = pOffsets[i];
+            auto&       vk_offset_element  = vk_device_size_list[i];
+
+            vk_offset_element = rhi_offset_element;
+        };
+
+        return fn_vk_cmd_bind_vertex_buffers(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                             firstBinding,
+                                             bindingCount,
+                                             vk_buffer_list.data(),
+                                             vk_device_size_list.data());
+    }
+
     // 启动渲染过程
     void VulkanRHI::cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
                                           const RHIRenderPassBeginInfo* pRenderPassBegin,
@@ -1250,7 +1326,9 @@ namespace Piccolo
     {
         if (fn_vk_wait_for_fences(
                 m_device, 1, &m_is_frame_in_flight_fences[m_current_frame_index], VK_TRUE, UINT64_MAX) != VK_SUCCESS)
+        {
             LOG_ERROR("Vulkan failed to synchronize fences!");
+        }
     }
 
     bool VulkanRHI::prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain)
@@ -1363,5 +1441,30 @@ namespace Piccolo
     void VulkanRHI::destroyFramebuffer(RHIFramebuffer* framebuffer)
     {
         vkDestroyFramebuffer(m_device, static_cast<VulkanFramebuffer*>(framebuffer)->getResource(), nullptr);
+    }
+
+    // map cpu data with the memory data
+    bool VulkanRHI::mapMemory(RHIDeviceMemory*  memory,
+                              RHIDeviceSize     offset,
+                              RHIDeviceSize     size,
+                              RHIMemoryMapFlags flags,
+                              void**            ppData)
+    {
+        if (vkMapMemory(m_device,
+                        static_cast<VulkanDeviceMemory*>(memory)->getResource(),
+                        offset,
+                        size,
+                        static_cast<VkMemoryMapFlags>(flags),
+                        ppData) != VK_SUCCESS)
+        {
+            LOG_ERROR("vkMapMemory failed!");
+            return false;
+        }
+        return true;
+    }
+
+    void VulkanRHI::unmapMemory(RHIDeviceMemory* memory)
+    {
+        vkUnmapMemory(m_device, static_cast<VulkanDeviceMemory*>(memory)->getResource());
     }
 } // namespace Piccolo

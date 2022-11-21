@@ -2,6 +2,7 @@
 #include "core/base/macro.h"
 #include "function/global/global_context.h"
 
+#include "function/render/debugdraw/debug_draw_primitive.h"
 #include "function/render/render_type.h"
 #include <debugdraw_frag.h>
 #include <debugdraw_vert.h>
@@ -67,7 +68,9 @@ namespace Piccolo
         renderpass_create_info.pDependencies   = dependencies;
 
         if (m_rhi->createRenderPass(&renderpass_create_info, m_framebuffer.render_pass) != RHI_SUCCESS)
+        {
             LOG_ERROR("RHI failed to create RenderPass!");
+        }
     }
 
     void DebugDrawPipeline::setupPipelines()
@@ -94,12 +97,16 @@ namespace Piccolo
                                                             frag_pipeline_shader_stage_create_info};
 
         // set vertex input information
+        auto vertex_binding_descriptions   = DebugDrawVertex::getBindingDescriptions();
+        auto vertex_attribute_descriptions = DebugDrawVertex::getAttributeDescriptions();
         RHIPipelineVertexInputStateCreateInfo vertex_input_state_create_info = {};
         vertex_input_state_create_info.sType = RHI_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertex_input_state_create_info.vertexBindingDescriptionCount   = 0;
-        vertex_input_state_create_info.pVertexBindingDescriptions      = nullptr; // Optional
-        vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
-        vertex_input_state_create_info.pVertexAttributeDescriptions    = nullptr; // Optional
+        vertex_input_state_create_info.vertexBindingDescriptionCount =
+            static_cast<uint32_t>(vertex_binding_descriptions.size());
+        vertex_input_state_create_info.pVertexBindingDescriptions = vertex_binding_descriptions.data();
+        vertex_input_state_create_info.vertexAttributeDescriptionCount =
+            static_cast<uint32_t>(vertex_attribute_descriptions.size());
+        vertex_input_state_create_info.pVertexAttributeDescriptions = vertex_attribute_descriptions.data();
 
         // set vertex input assembly rule
         RHIPipelineInputAssemblyStateCreateInfo input_assembly_create_info = {};
@@ -186,7 +193,9 @@ namespace Piccolo
 
         m_render_pipelines.resize(1);
         if (m_rhi->createPipelineLayout(&pipeline_layout_create_info, m_render_pipelines[0].layout) != RHI_SUCCESS)
+        {
             LOG_ERROR("Failed to create RHI pipeline layout");
+        }
 
         RHIGraphicsPipelineCreateInfo pipeline_info {};
         pipeline_info.sType = RHI_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -218,7 +227,9 @@ namespace Piccolo
         // create the pipeline
         if (m_rhi->createGraphicsPipelines(RHI_NULL_HANDLE, 1, &pipeline_info, m_render_pipelines[0].pipeline) !=
             RHI_SUCCESS)
+        {
             LOG_ERROR("Failed to create debug draw graphics pipeline");
+        }
     }
 
     void DebugDrawPipeline::setupFramebuffer()
@@ -243,7 +254,9 @@ namespace Piccolo
             framebuffer_create_info.layers          = 1;
 
             if (m_rhi->createFramebuffer(&framebuffer_create_info, m_framebuffer.framebuffers[i]) != RHI_SUCCESS)
+            {
                 LOG_ERROR("create inefficient pick framebuffer");
+            }
         }
     }
 

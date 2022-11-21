@@ -35,29 +35,39 @@ namespace Piccolo
         virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)     = 0;
         virtual bool createFramebuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pFramebuffer) = 0;
         virtual void recreateSwapchain()                                                                           = 0;
+        virtual void createBuffer(RHIDeviceSize          size,
+                                  RHIBufferUsageFlags    usage,
+                                  RHIMemoryPropertyFlags properties,
+                                  RHIBuffer*&            buffer,
+                                  RHIDeviceMemory*&      buffer_memory)                                                 = 0;
 
         // command and command write
+        virtual void cmdBindVertexBuffersPFN(RHICommandBuffer*    commandBuffer,
+                                             uint32_t             firstBinding,
+                                             uint32_t             bindingCount,
+                                             RHIBuffer* const*    pBuffers,
+                                             const RHIDeviceSize* pOffsets) = 0;
         virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
                                            const RHIRenderPassBeginInfo* pRenderPassBegin,
-                                           RHISubpassContents            contents)   = 0;
+                                           RHISubpassContents            contents)     = 0;
         virtual void cmdBindPipelinePFN(RHICommandBuffer*    commandBuffer,
                                         RHIPipelineBindPoint pipelineBindPoint,
-                                        RHIPipeline*         pipeline)            = 0;
+                                        RHIPipeline*         pipeline)              = 0;
         virtual void cmdDraw(RHICommandBuffer* commandBuffer,
                              uint32_t          vertexCount,
                              uint32_t          instanceCount,
                              uint32_t          firstVertex,
-                             uint32_t          firstInstance)                      = 0;
-        virtual void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer) = 0;
+                             uint32_t          firstInstance)                        = 0;
+        virtual void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer)   = 0;
         virtual void cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
                                        uint32_t           firstViewport,
                                        uint32_t           viewportCount,
-                                       const RHIViewport* pViewports)     = 0;
+                                       const RHIViewport* pViewports)       = 0;
         virtual void cmdSetScissorPFN(RHICommandBuffer* commandBuffer,
                                       uint32_t          firstScissor,
                                       uint32_t          scissorCount,
-                                      const RHIRect2D*  pScissors)         = 0;
-        virtual void waitForFences()                                      = 0;
+                                      const RHIRect2D*  pScissors)           = 0;
+        virtual void waitForFences()                                        = 0;
 
         // query
         virtual RHISwapChainDesc  getSwapchainInfo()              = 0;
@@ -69,5 +79,13 @@ namespace Piccolo
 
         // destroy
         virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) = 0;
+
+        // memory
+        virtual bool mapMemory(RHIDeviceMemory*  memory,
+                               RHIDeviceSize     offset,
+                               RHIDeviceSize     size,
+                               RHIMemoryMapFlags flags,
+                               void**            ppData)             = 0;
+        virtual void unmapMemory(RHIDeviceMemory* memory) = 0;
     };
 }; // namespace Piccolo

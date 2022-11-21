@@ -48,4 +48,62 @@ namespace Piccolo
         }
         return shader_module;
     }
+
+    void VulkanUtil::createBuffer(VkPhysicalDevice      physical_device,
+                                  VkDevice              device,
+                                  VkDeviceSize          size,
+                                  VkBufferUsageFlags    usage,
+                                  VkMemoryPropertyFlags properties,
+                                  VkBuffer&             buffer,
+                                  VkDeviceMemory&       buffer_memory)
+    {
+        // create buffer
+        VkBufferCreateInfo buffer_create_info {};
+        buffer_create_info.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        buffer_create_info.size        = size;
+        buffer_create_info.usage       = usage;                     // use as a vertex/staging/index buffer
+        buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // not sharing among queue families
+        if (vkCreateBuffer(device, &buffer_create_info, nullptr, &buffer) != VK_SUCCESS)
+        {
+            LOG_ERROR("vkCreateBuffer failed!");
+            return;
+        }
+
+        // get buffer memory requirements(for allocate_info.allocationSize and allocate_info.memoryTypeIndex)
+        VkMemoryRequirements buffer_memory_requirements;
+        vkGetBufferMemoryRequirements(device, buffer, &buffer_memory_requirements);
+
+        // find the right memory type
+        VkMemoryAllocateInfo buffer_memory_allocate_info {};
+        buffer_memory_allocate_info.sType          = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        buffer_memory_allocate_info.allocationSize = buffer_memory_requirements.size;
+        buffer_memory_allocate_info.memoryTypeIndex =
+            VulkanUtil::findMemoryType(physical_device, buffer_memory_requirements.memoryTypeBits, properties);
+
+        // allocate the device memory
+        if (vkAllocateMemory(device, &buffer_memory_allocate_info, nullptr, &buffer_memory) != VK_SUCCESS)
+        {
+            LOG_ERROR("vkAllocateMemory failed!");
+            return;
+        }
+
+        // bind buffer with device memory
+        vkBindBufferMemory(device, buffer, buffer_memory, 0); // offset = 0
+    }
+
+    uint32_t VulkanUtil::findMemoryType(VkPhysicalDevice      physical_device,
+                                        uint32_t              type_filter,
+                                        VkMemoryPropertyFlags properties_flag)
+    {
+        VkPhysicalDeviceMemoryProperties physical_device_memory_properties;
+        vkGetPhysicalDeviceMemoryProperties(physical_device, &physical_device_memory_properties);
+
+        for (uint32_t i = 0; i < physical_device_memory_properties.memoryTypeCount; i++)
+            if (type_filter & (1 << i) &&
+                (physical_device_memory_properties.memoryTypes[i].propertyFlags & properties_flag) == properties_flag)
+                return i;
+
+        LOG_ERROR("findMemoryType error");
+        return 0;
+    }
 } // namespace Piccolo
