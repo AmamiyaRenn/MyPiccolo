@@ -7,7 +7,7 @@ int main(int argc, char** argv)
 {
     // 获得可执行文件名称与config文件目录
     std::filesystem::path executable_path(argv[0]);
-    std::filesystem::path config_file_path = executable_path.parent_path();
+    std::filesystem::path config_file_path = executable_path.parent_path() / "PiccoloEditor.ini";
 
     // 引擎创建
     Piccolo::PiccoloEngine* engine = new Piccolo::PiccoloEngine();

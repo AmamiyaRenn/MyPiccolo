@@ -1,6 +1,8 @@
 ﻿#include "runtime/function/global/global_context.h"
+#include "core/base/macro.h"
 #include "function/render/render_system.h"
 #include "function/render/window_system.h"
+
 #include <memory>
 
 namespace Piccolo
@@ -9,6 +11,12 @@ namespace Piccolo
 
     void RuntimeGlobalContext::startSystems(const std::string& config_file_path)
     {
+        // 初始化默认设置管理器
+        m_config_manager = std::make_shared<ConfigManager>();
+        m_config_manager->initialize(config_file_path);
+
+        LOG_INFO(m_config_manager->getGlobalRenderingResUrl());
+
         // 初始化视窗子系统
         m_window_system = std::make_shared<WindowSystem>();
         WindowCreateInfo window_create_info;

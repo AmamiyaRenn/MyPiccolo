@@ -1,7 +1,8 @@
 ﻿#include "runtime/engine.h"
-
+#include "core/base/macro.h"
 #include "function/render/window_system.h"
 #include "runtime/function/global/global_context.h"
+
 #include <string>
 
 namespace Piccolo
@@ -9,6 +10,8 @@ namespace Piccolo
     void PiccoloEngine::initialize(const std::string& config_file_path)
     {
         g_runtime_global_context.startSystems(config_file_path); // 初始化子系统
+
+        LOG_INFO("engine start");
     }
 
     void PiccoloEngine::shutdown() {}
