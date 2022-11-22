@@ -20,9 +20,6 @@ namespace Piccolo
         size_t     getVertexCacheOffset() const { return m_vertex_cache.size(); }
         RHIBuffer* getVertexBuffer() const { return m_vertex_resource.buffer; }
 
-        size_t     getIndexCacheOffset() const { return m_index_cache.size(); }
-        RHIBuffer* getIndexBuffer() const { return m_index_resource.buffer; }
-
     private:
         std::shared_ptr<RHI> m_rhi;
 
@@ -33,8 +30,6 @@ namespace Piccolo
         };
         // changeable resource
         Resource                     m_vertex_resource; // vk顶点资源指针
-        Resource                     m_index_resource;  // vk顶点资源指针
         std::vector<DebugDrawVertex> m_vertex_cache;    // 顶点数据cpu暂存
-        std::vector<uint16_t>        m_index_cache;     // 索引数据cpu暂存
     };
 } // namespace Piccolo
