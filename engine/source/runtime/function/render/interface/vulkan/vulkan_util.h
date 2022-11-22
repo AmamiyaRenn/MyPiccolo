@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "function/render/interface/rhi.h"
 #include "vulkan/vulkan_core.h"
 
 #include <vector>
@@ -26,5 +27,11 @@ namespace Piccolo
                                            VkDeviceMemory&       buffer_memory);
         static uint32_t
         findMemoryType(VkPhysicalDevice physical_device, uint32_t type_filter, VkMemoryPropertyFlags properties_flag);
+        static void copyBuffer(RHI*         rhi,
+                               VkBuffer     srcBuffer,
+                               VkBuffer     dstBuffer,
+                               VkDeviceSize srcOffset,
+                               VkDeviceSize dstOffset,
+                               VkDeviceSize size);
     };
 } // namespace Piccolo

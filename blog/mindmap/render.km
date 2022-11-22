@@ -11,7 +11,8 @@
                     "id": "cof2uyqfjjs0",
                     "created": 1668739716772,
                     "text": "engine->initialize",
-                    "layout": null
+                    "layout": null,
+                    "expandState": "expand"
                 },
                 "children": [
                     {
@@ -28,7 +29,8 @@
                                     "id": "cof2vgetfag0",
                                     "created": 1668739755252,
                                     "text": "m_window_system->initialize",
-                                    "layout": null
+                                    "layout": null,
+                                    "expandState": "collapse"
                                 },
                                 "children": [
                                     {
@@ -47,7 +49,8 @@
                                     "id": "cof2y20yxds0",
                                     "created": 1668739959032,
                                     "text": " m_render_system->initialize",
-                                    "layout": null
+                                    "layout": null,
+                                    "expandState": "collapse"
                                 },
                                 "children": [
                                     {
@@ -555,7 +558,8 @@
                                     "id": "cof2ycf2sqo0",
                                     "created": 1668739981653,
                                     "text": "m_debugdraw_manager->initialize",
-                                    "layout": null
+                                    "layout": null,
+                                    "expandState": "expand"
                                 },
                                 "children": [
                                     {
@@ -572,7 +576,8 @@
                                                     "id": "cof30x9k25s0",
                                                     "created": 1668740183760,
                                                     "text": "m_debug_draw_pipeline[i]->initialize",
-                                                    "layout": null
+                                                    "layout": null,
+                                                    "expandState": "expand"
                                                 },
                                                 "children": [
                                                     {
@@ -664,9 +669,28 @@
                                                                 "data": {
                                                                     "id": "cofykxg3pvc0",
                                                                     "created": 1668829205846,
-                                                                    "text": "// set vertex input information"
+                                                                    "text": "// set vertex input information",
+                                                                    "expandState": "expand"
                                                                 },
-                                                                "children": []
+                                                                "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "coiilzl1w0w0",
+                                                                            "created": 1669088830974,
+                                                                            "text": "getBindDescriptions",
+                                                                            "expandState": "expand"
+                                                                        },
+                                                                        "children": []
+                                                                    },
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "coiilzl1w0w0",
+                                                                            "created": 1669088830974,
+                                                                            "text": "getAttributeDescriptions"
+                                                                        },
+                                                                        "children": []
+                                                                    }
+                                                                ]
                                                             },
                                                             {
                                                                 "data": {
@@ -827,7 +851,7 @@
                                                     "created": 1668740835475,
                                                     "text": "vulkan_rhi->prepareBeforePass",
                                                     "layout": null,
-                                                    "expandState": "expand"
+                                                    "expandState": "collapse"
                                                 },
                                                 "children": [
                                                     {
@@ -884,6 +908,47 @@
                                                 "children": [
                                                     {
                                                         "data": {
+                                                            "id": "coiin7iv3qg0",
+                                                            "created": 1669088926620,
+                                                            "text": "prepareDrawBuffer"
+                                                        },
+                                                        "children": [
+                                                            {
+                                                                "data": {
+                                                                    "id": "coiindywvzk0",
+                                                                    "created": 1669088940652,
+                                                                    "text": "m_buffer_allocator->clear"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "coiinptvbio0",
+                                                                    "created": 1669088966468,
+                                                                    "text": "m_debug_draw_group_for_render.writeTriangleData"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "coiinwwtbl40",
+                                                                    "created": 1669088981884,
+                                                                    "text": "m_buffer_allocator->cacheVertexs"
+                                                                },
+                                                                "children": []
+                                                            },
+                                                            {
+                                                                "data": {
+                                                                    "id": "coiio214mew0",
+                                                                    "created": 1669088993028,
+                                                                    "text": "m_buffer_allocator->allocator"
+                                                                },
+                                                                "children": []
+                                                            }
+                                                        ]
+                                                    },
+                                                    {
+                                                        "data": {
                                                             "id": "cof34qb2yu80",
                                                             "created": 1668740482071,
                                                             "text": "drawDebugObject",
@@ -895,9 +960,19 @@
                                                                     "id": "cof3506ntcg0",
                                                                     "created": 1668740503572,
                                                                     "text": "drawPointLineTriangleBox",
-                                                                    "layout": null
+                                                                    "layout": null,
+                                                                    "expandState": "expand"
                                                                 },
                                                                 "children": [
+                                                                    {
+                                                                        "data": {
+                                                                            "id": "cof35o0rl600",
+                                                                            "created": 1668740555458,
+                                                                            "text": "m_rhi->cmdBindVertexBuffersPFN",
+                                                                            "layout": null
+                                                                        },
+                                                                        "children": []
+                                                                    },
                                                                     {
                                                                         "data": {
                                                                             "id": "cof35o0rl600",
@@ -941,7 +1016,8 @@
                                                 "data": {
                                                     "id": "cofxotamjfs0",
                                                     "created": 1668826689154,
-                                                    "text": "vulkan_rhi->submitRendering"
+                                                    "text": "vulkan_rhi->submitRendering",
+                                                    "expandState": "collapse"
                                                 },
                                                 "children": [
                                                     {

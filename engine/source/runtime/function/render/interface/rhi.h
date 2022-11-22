@@ -40,6 +40,11 @@ namespace Piccolo
                                   RHIMemoryPropertyFlags properties,
                                   RHIBuffer*&            buffer,
                                   RHIDeviceMemory*&      buffer_memory)                                                 = 0;
+        virtual void copyBuffer(RHIBuffer*    srcBuffer,
+                                RHIBuffer*    dstBuffer,
+                                RHIDeviceSize srcOffset,
+                                RHIDeviceSize dstOffset,
+                                RHIDeviceSize size)                                                                = 0;
 
         // command and command write
         virtual void cmdBindVertexBuffersPFN(RHICommandBuffer*    commandBuffer,
@@ -74,11 +79,14 @@ namespace Piccolo
         virtual RHICommandBuffer* getCurrentCommandBuffer() const = 0;
 
         // command write
-        virtual bool prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) = 0;
-        virtual void submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain)   = 0;
+        virtual bool              prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) = 0;
+        virtual void              submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain)   = 0;
+        virtual RHICommandBuffer* beginSingleTimeCommands()                                                 = 0;
+        virtual void              endSingleTimeCommands(RHICommandBuffer* command_buffer)                   = 0;
 
         // destroy
         virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) = 0;
+        virtual void destroyBuffer(RHIBuffer*& buffer)               = 0;
 
         // memory
         virtual bool mapMemory(RHIDeviceMemory*  memory,
@@ -87,5 +95,6 @@ namespace Piccolo
                                RHIMemoryMapFlags flags,
                                void**            ppData)             = 0;
         virtual void unmapMemory(RHIDeviceMemory* memory) = 0;
+        virtual void freeMemory(RHIDeviceMemory*& memory) = 0;
     };
 }; // namespace Piccolo

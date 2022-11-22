@@ -339,6 +339,22 @@ namespace Piccolo
         // graphics command pool
         { // TODO: implement
             m_rhi_command_pool = new VulkanCommandPool();
+            VkCommandPool           vk_command_pool;
+            VkCommandPoolCreateInfo command_pool_create_info {};
+            command_pool_create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+            command_pool_create_info.pNext            = nullptr;
+            command_pool_create_info.flags            = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+            command_pool_create_info.queueFamilyIndex = m_queue_indices.graphics_family.value();
+
+            if (vkCreateCommandPool(m_device, &command_pool_create_info, nullptr, &vk_command_pool) != VK_SUCCESS)
+            {
+                LOG_ERROR("vk create command pool");
+            }
+
+            static_cast<VulkanCommandPool*>(m_rhi_command_pool)->setResource(vk_command_pool);
+        }
+        // other command pools
+        {
             VkCommandPoolCreateInfo command_pool_create_info {};
             command_pool_create_info.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
             command_pool_create_info.pNext            = nullptr;
@@ -1139,6 +1155,17 @@ namespace Piccolo
         static_cast<VulkanDeviceMemory*>(buffer_memory)->setResource(vk_device_memory);
     }
 
+    void VulkanRHI::copyBuffer(RHIBuffer*    srcBuffer,
+                               RHIBuffer*    dstBuffer,
+                               RHIDeviceSize srcOffset,
+                               RHIDeviceSize dstOffset,
+                               RHIDeviceSize size)
+    {
+        VkBuffer vk_src_buffer = static_cast<VulkanBuffer*>(srcBuffer)->getResource();
+        VkBuffer vk_dst_buffer = static_cast<VulkanBuffer*>(dstBuffer)->getResource();
+        VulkanUtil::copyBuffer(this, vk_src_buffer, vk_dst_buffer, srcOffset, dstOffset, size);
+    }
+
     void VulkanRHI::cmdBindVertexBuffersPFN(RHICommandBuffer*    commandBuffer,
                                             uint32_t             firstBinding,
                                             uint32_t             bindingCount,
@@ -1438,9 +1465,55 @@ namespace Piccolo
         m_current_frame_index = (m_current_frame_index + 1) % m_k_max_frames_in_flight;
     }
 
+    RHICommandBuffer* VulkanRHI::beginSingleTimeCommands()
+    {
+        VkCommandBufferAllocateInfo alloc_info {};
+        alloc_info.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        alloc_info.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        alloc_info.commandPool        = static_cast<VulkanCommandPool*>(m_rhi_command_pool)->getResource();
+        alloc_info.commandBufferCount = 1;
+
+        VkCommandBuffer command_buffer;
+        vkAllocateCommandBuffers(m_device, &alloc_info, &command_buffer);
+
+        VkCommandBufferBeginInfo begin_info {};
+        begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        fn_vk_begin_command_buffer(command_buffer, &begin_info);
+
+        RHICommandBuffer* rhi_command_buffer = new VulkanCommandBuffer();
+        static_cast<VulkanCommandBuffer*>(rhi_command_buffer)->setResource(command_buffer);
+        return rhi_command_buffer;
+    }
+
+    void VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buffer)
+    {
+        VkCommandBuffer vk_command_buffer = static_cast<VulkanCommandBuffer*>(command_buffer)->getResource();
+        fn_vk_end_command_buffer(vk_command_buffer);
+
+        VkSubmitInfo submit_info {};
+        submit_info.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers    = &vk_command_buffer;
+
+        vkQueueSubmit(static_cast<VulkanQueue*>(m_graphics_queue)->getResource(), 1, &submit_info, VK_NULL_HANDLE);
+        vkQueueWaitIdle(static_cast<VulkanQueue*>(m_graphics_queue)->getResource());
+
+        vkFreeCommandBuffers(
+            m_device, static_cast<VulkanCommandPool*>(m_rhi_command_pool)->getResource(), 1, &vk_command_buffer);
+        delete (command_buffer);
+    }
+
     void VulkanRHI::destroyFramebuffer(RHIFramebuffer* framebuffer)
     {
         vkDestroyFramebuffer(m_device, static_cast<VulkanFramebuffer*>(framebuffer)->getResource(), nullptr);
+    }
+
+    void VulkanRHI::destroyBuffer(RHIBuffer*& buffer)
+    {
+        vkDestroyBuffer(m_device, static_cast<VulkanBuffer*>(buffer)->getResource(), nullptr);
+        RHI_DELETE_PTR(buffer);
     }
 
     // map cpu data with the memory data
@@ -1466,5 +1539,11 @@ namespace Piccolo
     void VulkanRHI::unmapMemory(RHIDeviceMemory* memory)
     {
         vkUnmapMemory(m_device, static_cast<VulkanDeviceMemory*>(memory)->getResource());
+    }
+
+    void VulkanRHI::freeMemory(RHIDeviceMemory*& memory)
+    {
+        vkFreeMemory(m_device, static_cast<VulkanDeviceMemory*>(memory)->getResource(), nullptr);
+        RHI_DELETE_PTR(memory);
     }
 } // namespace Piccolo

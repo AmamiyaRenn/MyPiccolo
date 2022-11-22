@@ -1,5 +1,6 @@
 ﻿#include "function/render/interface/vulkan/vulkan_util.h"
 #include "core/base/macro.h"
+#include "function/render/interface/vulkan/vulkan_rhi.h"
 #include "vulkan/vulkan_core.h"
 
 namespace Piccolo
@@ -105,5 +106,27 @@ namespace Piccolo
 
         LOG_ERROR("findMemoryType error");
         return 0;
+    }
+
+    void VulkanUtil::copyBuffer(RHI*         rhi,
+                                VkBuffer     srcBuffer,
+                                VkBuffer     dstBuffer,
+                                VkDeviceSize srcOffset,
+                                VkDeviceSize dstOffset,
+                                VkDeviceSize size)
+    {
+        if (rhi == nullptr)
+        {
+            LOG_ERROR("rhi is nullptr");
+            return;
+        }
+
+        RHICommandBuffer* rhi_command_buffer = static_cast<VulkanRHI*>(rhi)->beginSingleTimeCommands();
+        VkCommandBuffer   command_buffer     = static_cast<VulkanCommandBuffer*>(rhi_command_buffer)->getResource();
+
+        VkBufferCopy copy_region = {srcOffset, dstOffset, size};
+        vkCmdCopyBuffer(command_buffer, srcBuffer, dstBuffer, 1, &copy_region);
+
+        static_cast<VulkanRHI*>(rhi)->endSingleTimeCommands(rhi_command_buffer);
     }
 } // namespace Piccolo

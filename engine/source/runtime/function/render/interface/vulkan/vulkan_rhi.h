@@ -40,6 +40,11 @@ namespace Piccolo
                           RHIMemoryPropertyFlags properties,
                           RHIBuffer*&            buffer,
                           RHIDeviceMemory*&      buffer_memory) override;
+        void copyBuffer(RHIBuffer*    srcBuffer,
+                        RHIBuffer*    dstBuffer,
+                        RHIDeviceSize srcOffset,
+                        RHIDeviceSize dstOffset,
+                        RHIDeviceSize size) override;
 
         // command and command write
         void cmdBindVertexBuffersPFN(RHICommandBuffer*    commandBuffer,
@@ -74,11 +79,14 @@ namespace Piccolo
         RHICommandBuffer* getCurrentCommandBuffer() const override;
 
         // command write
-        bool prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) override;
-        void submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain) override;
+        bool              prepareBeforePass(std::function<void()> passUpdateAfterRecreateSwapchain) override;
+        void              submitRendering(std::function<void()> passUpdateAfterRecreateSwapchain) override;
+        RHICommandBuffer* beginSingleTimeCommands() override;
+        void              endSingleTimeCommands(RHICommandBuffer* command_buffer) override;
 
         // destroy
         void destroyFramebuffer(RHIFramebuffer* framebuffer) override;
+        void destroyBuffer(RHIBuffer*& buffer) override;
 
         // memory
         bool mapMemory(RHIDeviceMemory*  memory,
@@ -87,6 +95,7 @@ namespace Piccolo
                        RHIMemoryMapFlags flags,
                        void**            ppData) override;
         void unmapMemory(RHIDeviceMemory* memory) override;
+        void freeMemory(RHIDeviceMemory*& memory) override;
 
         static uint8_t const m_k_max_frames_in_flight {3}; // 最大同时渲染的图片数量
 
