@@ -40,6 +40,11 @@
 
 [GAMES101](https://www.bilibili.com/video/BV1X7411F744?p=1&vd_source=319cfc2457dab41418812a7cbf1411b8)
 
+### GPU
+
+[上帝视角看 GPU（1）：图形流水线基础](https://www.bilibili.com/video/BV1P44y1V7bu/?share_source=copy_web&vd_source=78fca262a252b90390c3caa57c3e6f1b)
+强烈推荐！逻辑清晰且全是干货
+
 ### 图形 API
 
 [LearningOpenGL CN](https://learnopengl-cn.github.io/)
