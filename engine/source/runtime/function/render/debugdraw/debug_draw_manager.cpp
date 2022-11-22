@@ -1,6 +1,7 @@
 ﻿#include "function/render/debugdraw/debug_draw_manager.h"
 #include "function/global/global_context.h"
 #include "function/render/debugdraw/debug_draw_pipeline.h"
+#include "function/render/render_type.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -35,9 +36,18 @@ namespace Piccolo
 
         std::vector<DebugDrawVertex> vertexs;
 
-        m_debug_draw_group_for_render.writeTriangleData(vertexs, true);
+        // m_debug_draw_group_for_render.writeTriangleData(vertexs, true);
+        // m_triangle_start_offset = m_buffer_allocator->cacheVertexs(vertexs);
+        // m_triangle_end_offset   = m_buffer_allocator->getVertexCacheOffset();
+
+        // FIXME：删除
+        vertexs = {{{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+                   {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+                   {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+                   {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}};
+
         m_triangle_start_offset = m_buffer_allocator->cacheVertexs(vertexs);
-        m_triangle_end_offset   = m_buffer_allocator->getVertexCacheOffset();
+        m_triangle_end_offset   = 4;
 
         m_buffer_allocator->allocator();
     }
@@ -49,7 +59,11 @@ namespace Piccolo
             return;
 
         RHIDeviceSize offsets[] = {0};
+        // 绑定顶点缓冲
         m_rhi->cmdBindVertexBuffersPFN(m_rhi->getCurrentCommandBuffer(), 0, 1, vertex_buffers, offsets);
+        // 绑定索引缓冲
+        m_rhi->cmdBindIndexBufferPFN(
+            m_rhi->getCurrentCommandBuffer(), m_buffer_allocator->getIndexBuffer(), 0, RHI_INDEX_TYPE_UINT16);
 
         std::vector<DebugDrawPipeline*> vc_pipelines {
             m_debug_draw_pipeline[static_cast<uint32_t>(DebugDrawPipelineType::triangle)],
@@ -80,8 +94,15 @@ namespace Piccolo
             m_rhi->cmdBindPipelinePFN(m_rhi->getCurrentCommandBuffer(),
                                       RHI_PIPELINE_BIND_POINT_GRAPHICS, // graphics pipeline
                                       vc_pipelines[i]->getPipeline().pipeline);
-            m_rhi->cmdDraw(
-                m_rhi->getCurrentCommandBuffer(), vc_end_offsets[i] - vc_start_offsets[i], 1, vc_start_offsets[i], 0);
+            // m_rhi->cmdDraw(
+            //     m_rhi->getCurrentCommandBuffer(), vc_end_offsets[i] - vc_start_offsets[i], 1, vc_start_offsets[i],
+            //     0);
+            m_rhi->cmdDrawIndexedPFN(m_rhi->getCurrentCommandBuffer(),
+                                     static_cast<uint32_t>(m_buffer_allocator->getIndexCacheOffset()),
+                                     1,
+                                     0,
+                                     0,
+                                     0);
             m_rhi->cmdEndRenderPassPFN(m_rhi->getCurrentCommandBuffer());
         }
     }

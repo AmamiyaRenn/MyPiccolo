@@ -52,6 +52,10 @@ namespace Piccolo
                                              uint32_t             bindingCount,
                                              RHIBuffer* const*    pBuffers,
                                              const RHIDeviceSize* pOffsets) = 0;
+        virtual void cmdBindIndexBufferPFN(RHICommandBuffer* commandBuffer,
+                                           RHIBuffer*        buffer,
+                                           RHIDeviceSize     offset,
+                                           RHIIndexType      indexType)          = 0;
         virtual void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
                                            const RHIRenderPassBeginInfo* pRenderPassBegin,
                                            RHISubpassContents            contents)     = 0;
@@ -63,6 +67,12 @@ namespace Piccolo
                              uint32_t          instanceCount,
                              uint32_t          firstVertex,
                              uint32_t          firstInstance)                        = 0;
+        virtual void cmdDrawIndexedPFN(RHICommandBuffer* commandBuffer,
+                                       uint32_t          indexCount,
+                                       uint32_t          instanceCount,
+                                       uint32_t          firstIndex,
+                                       int32_t           vertexOffset,
+                                       uint32_t          firstInstance)              = 0;
         virtual void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer)   = 0;
         virtual void cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
                                        uint32_t           firstViewport,

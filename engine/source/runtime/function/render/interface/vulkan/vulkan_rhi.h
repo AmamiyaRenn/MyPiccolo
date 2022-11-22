@@ -52,6 +52,10 @@ namespace Piccolo
                                      uint32_t             bindingCount,
                                      RHIBuffer* const*    pBuffers,
                                      const RHIDeviceSize* pOffsets) override;
+        void cmdBindIndexBufferPFN(RHICommandBuffer* commandBuffer,
+                                   RHIBuffer*        buffer,
+                                   RHIDeviceSize     offset,
+                                   RHIIndexType      indexType) override;
         void cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
                                    const RHIRenderPassBeginInfo* pRenderPassBegin,
                                    RHISubpassContents            contents) override;
@@ -63,6 +67,12 @@ namespace Piccolo
                      uint32_t          instanceCount,
                      uint32_t          firstVertex,
                      uint32_t          firstInstance) override;
+        void cmdDrawIndexedPFN(RHICommandBuffer* commandBuffer,
+                               uint32_t          indexCount,
+                               uint32_t          instanceCount,
+                               uint32_t          firstIndex,
+                               int32_t           vertexOffset,
+                               uint32_t          firstInstance) override;
         void cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer) override;
         void cmdSetViewportPFN(RHICommandBuffer*  commandBuffer,
                                uint32_t           firstViewport,
@@ -142,6 +152,7 @@ namespace Piccolo
         PFN_vkBeginCommandBuffer   fn_vk_begin_command_buffer;
         PFN_vkEndCommandBuffer     fn_vk_end_command_buffer;
         PFN_vkCmdBindVertexBuffers fn_vk_cmd_bind_vertex_buffers;
+        PFN_vkCmdBindIndexBuffer   fn_vk_cmd_bind_index_buffers;
         PFN_vkCmdBeginRenderPass   fn_vk_cmd_begin_render_pass;
         PFN_vkCmdEndRenderPass     fn_vk_cmd_end_render_pass;
         PFN_vkCmdBindPipeline      fn_vk_cmd_bind_pipeline;
@@ -149,6 +160,7 @@ namespace Piccolo
         PFN_vkCmdSetScissor        fn_vk_cmd_set_scissor;
         PFN_vkWaitForFences        fn_vk_wait_for_fences;
         PFN_vkResetFences          fn_vk_reset_fences;
+        PFN_vkCmdDrawIndexed       fn_vk_cmd_draw_indexed;
 
     private:
         void createInstance();

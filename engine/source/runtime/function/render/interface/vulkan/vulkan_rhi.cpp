@@ -231,6 +231,8 @@ namespace Piccolo
             reinterpret_cast<PFN_vkEndCommandBuffer>(vkGetDeviceProcAddr(m_device, "vkEndCommandBuffer"));
         fn_vk_cmd_bind_vertex_buffers =
             reinterpret_cast<PFN_vkCmdBindVertexBuffers>(vkGetDeviceProcAddr(m_device, "vkCmdBindVertexBuffers"));
+        fn_vk_cmd_bind_index_buffers =
+            reinterpret_cast<PFN_vkCmdBindIndexBuffer>(vkGetDeviceProcAddr(m_device, "vkCmdBindIndexBuffer"));
         fn_vk_cmd_begin_render_pass =
             reinterpret_cast<PFN_vkCmdBeginRenderPass>(vkGetDeviceProcAddr(m_device, "vkCmdBeginRenderPass"));
         fn_vk_cmd_end_render_pass =
@@ -242,6 +244,8 @@ namespace Piccolo
         fn_vk_cmd_set_scissor = reinterpret_cast<PFN_vkCmdSetScissor>(vkGetDeviceProcAddr(m_device, "vkCmdSetScissor"));
         fn_vk_wait_for_fences = reinterpret_cast<PFN_vkWaitForFences>(vkGetDeviceProcAddr(m_device, "vkWaitForFences"));
         fn_vk_reset_fences    = reinterpret_cast<PFN_vkResetFences>(vkGetDeviceProcAddr(m_device, "vkResetFences"));
+        fn_vk_cmd_draw_indexed =
+            reinterpret_cast<PFN_vkCmdDrawIndexed>(vkGetDeviceProcAddr(m_device, "vkCmdDrawIndexed"));
     }
 
     // 创建交换链，选择最适合的属性
@@ -1201,6 +1205,17 @@ namespace Piccolo
                                              vk_device_size_list.data());
     }
 
+    void VulkanRHI::cmdBindIndexBufferPFN(RHICommandBuffer* commandBuffer,
+                                          RHIBuffer*        buffer,
+                                          RHIDeviceSize     offset,
+                                          RHIIndexType      indexType)
+    {
+        return fn_vk_cmd_bind_index_buffers(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                            static_cast<VulkanBuffer*>(buffer)->getResource(),
+                                            static_cast<VkDeviceSize>(offset),
+                                            static_cast<VkIndexType>(indexType));
+    }
+
     // 启动渲染过程
     void VulkanRHI::cmdBeginRenderPassPFN(RHICommandBuffer*             commandBuffer,
                                           const RHIRenderPassBeginInfo* pRenderPassBegin,
@@ -1284,6 +1299,21 @@ namespace Piccolo
                   instanceCount,
                   firstVertex,
                   firstInstance);
+    }
+
+    void VulkanRHI::cmdDrawIndexedPFN(RHICommandBuffer* commandBuffer,
+                                      uint32_t          indexCount,
+                                      uint32_t          instanceCount,
+                                      uint32_t          firstIndex,
+                                      int32_t           vertexOffset,
+                                      uint32_t          firstInstance)
+    {
+        return fn_vk_cmd_draw_indexed(static_cast<VulkanCommandBuffer*>(commandBuffer)->getResource(),
+                                      indexCount,
+                                      instanceCount,
+                                      firstIndex,
+                                      vertexOffset,
+                                      firstInstance);
     }
 
     void VulkanRHI::cmdEndRenderPassPFN(RHICommandBuffer* commandBuffer)
