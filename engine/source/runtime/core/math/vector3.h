@@ -1,11 +1,16 @@
 ﻿#pragma once
 
+#include "runtime/core/meta/reflection/reflection.h"
+
 #include <cassert>
 
 namespace Piccolo
 {
-    class Vector3
+    REFLECTION_TYPE(Vector3)
+    CLASS(Vector3, Fields)
     {
+        REFLECTION_BODY(Vector3);
+
     public:
         float x {0.f};
         float y {0.f};
