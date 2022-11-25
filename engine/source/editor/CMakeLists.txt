@@ -10,6 +10,9 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${EDITOR_HEADERS} ${EDITOR
 
 add_executable(${TARGET_NAME} ${EDITOR_HEADERS} ${EDITOR_SOURCES}) # 给建构目标添加文件
 
+# FIXME: 不知道干啥的
+add_compile_definitions("PICCOLO_ROOT_DIR=${BINARY_ROOT_DIR}")
+
 set_target_properties(${TARGET_NAME} PROPERTIES CXX_STANDARD 17 OUTPUT_NAME "PiccoloEditor")
 set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "Engine")
 
@@ -28,3 +31,7 @@ set(POST_BUILD_COMMANDS
 )
 
 add_custom_command(TARGET ${TARGET_NAME} ${POST_BUILD_COMMANDS})
+
+# precompile
+# set global vari used by precompile
+set(PICCOLO_EDITOR_HEADS “${EDITOR_HEADERS}” PARENT_SCOPE)
