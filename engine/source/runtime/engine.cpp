@@ -1,4 +1,7 @@
 ﻿#include "runtime/engine.h"
+
+#include "runtime/core/meta/reflection/reflection_register.h"
+
 #include "core/base/macro.h"
 #include "function/render/window_system.h"
 #include "runtime/function/global/global_context.h"
@@ -9,7 +12,7 @@ namespace Piccolo
 {
     void PiccoloEngine::initialize(const std::string& config_file_path)
     {
-        Reflection::TypeMe::metaRegister();
+        Reflection::TypeMetaRegister::metaRegister();
 
         g_runtime_global_context.startSystems(config_file_path); // 初始化子系统
 

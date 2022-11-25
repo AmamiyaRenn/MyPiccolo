@@ -1,4 +1,4 @@
-﻿#include "reflection.h"
+﻿#include "core/meta/reflection/reflection.h"
 
 #include <map>
 #include <string>
@@ -50,6 +50,8 @@ namespace Piccolo
             m_array_map.clear();
         }
 
+        TypeMeta::TypeMeta() : m_type_name(k_unknown_type), m_is_valid(false) { m_fields.clear(); }
+
         TypeMeta::TypeMeta(std::string type_name) : m_type_name(type_name)
         {
             m_is_valid = false;
@@ -62,9 +64,67 @@ namespace Piccolo
                 m_fields.emplace_back(
                     f_field); // 通过emplace_back来取消拷贝与析构f_field的这一步，直接原地构造后添加到vector
                 m_is_valid = true;
-
-                ++fields_iter.first;
             }
+        }
+
+        TypeMeta& TypeMeta::operator=(const TypeMeta& dest)
+        {
+            if (this == &dest)
+                return *this;
+            m_fields.clear();
+            m_fields    = dest.m_fields;
+            m_type_name = dest.m_type_name;
+            m_is_valid  = dest.m_is_valid;
+            return *this;
+        }
+
+        ReflectionInstance TypeMeta::newFromNameAndJson(std::string type_name, const Json& json_context)
+        {
+            auto iter = m_class_map.find(type_name);
+            if (iter != m_class_map.end())
+                return ReflectionInstance(TypeMeta(type_name), (std::get<1>(*iter->second)(json_context)));
+            return ReflectionInstance();
+        }
+
+        Json TypeMeta::writeByName(std::string type_name, void* instance)
+        {
+            auto iter = m_class_map.find(type_name);
+            return (iter != m_class_map.end()) ? std::get<2>(*iter->second)(instance) : Json();
+        }
+
+        bool TypeMeta::newArrayAccessorFromName(std::string array_type_name, ArrayAccessor& accessor)
+        {
+            auto iter = m_array_map.find(array_type_name);
+            if (iter != m_array_map.end())
+            {
+                ArrayAccessor new_accessor(iter->second);
+                accessor = new_accessor;
+                return true;
+            }
+            return false;
+        }
+
+        int TypeMeta::getFieldsList(FieldAccessor*& out_list)
+        {
+            int count = m_fields.size();
+            out_list  = new FieldAccessor[count];
+            for (int i = 0; i < count; ++i)
+                out_list[i] = m_fields[i];
+            return count;
+        }
+
+        int TypeMeta::getBaseClassReflectionInstanceList(ReflectionInstance*& out_list, void* instance)
+        {
+            auto iter = m_class_map.find(m_type_name);
+            return (iter != m_class_map.end()) ? (std::get<0>(*iter->second))(out_list, instance) : 0;
+        }
+
+        FieldAccessor TypeMeta::getFieldByName(const char* name)
+        {
+            const auto it = std::find_if(m_fields.begin(), m_fields.end(), [&](const auto& i) {
+                return std::strcmp(i.getFieldName(), name) == 0;
+            });
+            return (it != m_fields.end()) ? *it : FieldAccessor(nullptr);
         }
 
         FieldAccessor::FieldAccessor(FieldFunctionTuple* functions) : m_functions(functions)
@@ -78,32 +138,14 @@ namespace Piccolo
             m_field_name      = (std::get<3>(*m_functions))();
         }
 
-        TypeMeta FieldAccessor::getOwnerTypeMeta()
+        FieldAccessor& FieldAccessor::operator=(const FieldAccessor& dest)
         {
-            // todo: should check validation
-            TypeMeta f_type((std::get<2>(*m_functions))());
-            return f_type;
-        }
-
-        int TypeMeta::getFieldsList(FieldAccessor*& out_list)
-        {
-            int count = m_fields.size();
-            out_list  = new FieldAccessor[count];
-            for (int i = 0; i < count; ++i)
-            {
-                out_list[i] = m_fields[i];
-            }
-            return count;
-        }
-
-        FieldAccessor TypeMeta::getFieldByName(const char* name)
-        {
-            const auto it = std::find_if(m_fields.begin(), m_fields.end(), [&](const auto& i) {
-                return std::strcmp(i.getFieldName(), name) == 0;
-            });
-            if (it != m_fields.end())
-                return *it;
-            return FieldAccessor(nullptr);
+            if (this == &dest)
+                return *this;
+            m_functions       = dest.m_functions;
+            m_field_name      = dest.m_field_name;
+            m_field_type_name = dest.m_field_type_name;
+            return *this;
         }
 
         ArrayAccessor::ArrayAccessor(ArrayFunctionTuple* array_func) : m_func(array_func)

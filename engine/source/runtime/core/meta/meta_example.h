@@ -2,6 +2,8 @@
 
 #include "runtime/core/meta/reflection/reflection.h"
 
+#include <vector>
+
 namespace Piccolo
 {
     REFLECTION_TYPE(BaseTest)
@@ -32,4 +34,6 @@ namespace Piccolo
     public:
         std::vector<Reflection::ReflectionPtr<BaseTest>> m_test_base_array;
     };
+
+    void metaExample();
 } // namespace Piccolo

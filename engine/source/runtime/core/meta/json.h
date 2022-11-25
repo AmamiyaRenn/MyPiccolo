@@ -1,5 +1,5 @@
 ﻿#pragma once
-// #include "json11.hpp"
-// using Json = json11::Json;
-class Json
-{};
+
+#include "json11.hpp"
+
+using Json = json11::Json;

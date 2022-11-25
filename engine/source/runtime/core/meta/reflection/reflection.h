@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "core/meta/json.h"
+
 #include <functional>
 #include <string>
 
@@ -45,6 +46,16 @@ namespace Piccolo
 #define PICCOLO_REFLECTION_DEEP_COPY(type, dst_ptr, src_ptr) \
     *static_cast<(type*)>(dst_ptr) = *static_cast<(type*)>((src_ptr).getPtr());
 
+#define TypeMetaDef(class_name, ptr) \
+    Piccolo::Reflection::ReflectionInstance(Piccolo::Reflection::TypeMeta::newMetaFromName(#class_name), \
+                                            (class_name*)(ptr))
+    // static_cast<(class_name*)>(ptr))
+
+#define TypeMetaDefPtr(class_name, ptr) \
+    new Piccolo::Reflection::ReflectionInstance(Piccolo::Reflection::TypeMeta::newMetaFromName(#class_name), \
+                                                (class_name*)(ptr))
+    // static_cast<(class_name*)>(ptr))
+
     namespace Reflection
     {
         class TypeMeta;
@@ -61,7 +72,7 @@ namespace Piccolo
     using GetArrayFunc   = std::function<void*(int, void*)>;
     using GetSizeFunc    = std::function<int(void*)>;
 
-    using ConstructorWithJson                    = std::function<void*(const int&)>;
+    using ConstructorWithJson                    = std::function<void*(const Json&)>;
     using WriteJsonByName                        = std::function<Json(void*)>;
     using GetBaseClassReflectionInstanceListFunc = std::function<int(Reflection::ReflectionInstance*&, void*)>;
 
@@ -91,13 +102,13 @@ namespace Piccolo
         public:
             TypeMeta();
 
-            static TypeMeta newMetaFromName(std::string type_name) { return TypeMeta(type_name); }
-            // static bool               newArrayAccessorFromName(std::string array_type_name, ArrayAccessor& accessor);
-            // static ReflectionInstance newFromNameAndJson(std::string type_name, const Json& json_context);
-            // static Json               writeByName(std::string type_name, void* instance);
+            static TypeMeta           newMetaFromName(std::string type_name) { return TypeMeta(type_name); }
+            static ReflectionInstance newFromNameAndJson(std::string type_name, const Json& json_context);
+            static Json               writeByName(std::string type_name, void* instance);
+            static bool               newArrayAccessorFromName(std::string array_type_name, ArrayAccessor& accessor);
 
-            int getFieldsList(FieldAccessor*& out_list);
-            // int           getBaseClassReflectionInstanceList(ReflectionInstance*& out_list, void* instance);
+            int           getFieldsList(FieldAccessor*& out_list);
+            int           getBaseClassReflectionInstanceList(ReflectionInstance*& out_list, void* instance);
             FieldAccessor getFieldByName(const char* name);
             std::string   getTypeName() { return m_type_name; };
             bool          isValid() const { return m_is_valid; }
@@ -117,12 +128,11 @@ namespace Piccolo
             friend class TypeMeta;
 
         public:
-            FieldAccessor();
+            FieldAccessor() : m_functions(nullptr), m_field_name("UnKnown"), m_field_type_name("UnKnownType") {};
 
-            void* get(void* instance) { return static_cast<void*>((std::get<1>(*m_functions))(instance)); };
-            void  set(void* instance, void* value) { (std::get<0>(*m_functions))(instance, value); };
-
-            TypeMeta getOwnerTypeMeta();
+            void*    get(void* instance) { return static_cast<void*>((std::get<1>(*m_functions))(instance)); };
+            void     set(void* instance, void* value) { (std::get<0>(*m_functions))(instance, value); };
+            TypeMeta getOwnerTypeMeta() { return TypeMeta((std::get<2>(*m_functions))()); }
 
             bool        getTypeMeta(TypeMeta& field_type);
             const char* getFieldName() const { return m_field_name; }
