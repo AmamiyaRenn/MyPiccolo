@@ -49,7 +49,7 @@ namespace Piccolo
         Test2  test2_out;
         auto&& test2_json = Json::parse(test2_context, err);
         Serializer::read(test2_json, test2_out);
-        LOG_INFO(test2_context.c_str());
+        LOG_INFO(test2_context);
 
         // reflection
         auto                       meta = TypeMetaDef(Test2, &test2_out);

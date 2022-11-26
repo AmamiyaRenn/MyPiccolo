@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include "core/log/log_system.h"
 #include "function/render/debugdraw/debug_draw_manager.h"
 #include "function/render/render_system.h"
 #include "function/render/window_system.h"
@@ -18,6 +19,7 @@ namespace Piccolo
         // destroy all global systems
         void shutdownSystems();
 
+        std::shared_ptr<LogSystem>        m_logger_system;
         std::shared_ptr<ConfigManager>    m_config_manager;
         std::shared_ptr<WindowSystem>     m_window_system;
         std::shared_ptr<RenderSystem>     m_render_system;

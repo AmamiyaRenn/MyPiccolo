@@ -30,6 +30,7 @@ set_target_properties(json11 PROPERTIES FOLDER "ThirdParty/json11")
 target_link_libraries(${TARGET_NAME} PUBLIC glfw) # PUBLIC: 在public后面的库会被Link到你的target中，并且里面的符号也会被导出，提供给第三方使用
 target_link_libraries(${TARGET_NAME} PUBLIC ${vulkan_lib})
 target_link_libraries(${TARGET_NAME} PRIVATE $<BUILD_INTERFACE:json11>)
+target_link_libraries(${TARGET_NAME} PUBLIC spdlog::spdlog)
 
 # IDE标识
 set_target_properties(${TARGET_NAME} PROPERTIES CXX_STANDARD 17)

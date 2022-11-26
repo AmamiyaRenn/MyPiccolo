@@ -11,3 +11,10 @@ if(NOT TARGET glfw) # 判断 target-name 是否存在
     set_target_properties(glfw PROPERTIES FOLDER ${third_party_folder}/glfw) # 导入外部库，设置外部库文件路径
     set_target_properties(update_mappings PROPERTIES FOLDER ${third_party_folder}/glfw) # gamepad mapping
 endif()
+
+if(NOT TARGET spdlog)
+    option(SPDLOG_BUILD_EXAMPLE "" OFF)
+    option(SPDLOG_INSTALL "" OFF)
+    add_subdirectory(spdlog)
+    set_target_properties(spdlog PROPERTIES FOLDER ${third_party_folder}/spdlog)
+endif()

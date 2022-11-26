@@ -11,11 +11,11 @@ namespace Piccolo
 
     void RuntimeGlobalContext::startSystems(const std::string& config_file_path)
     {
+        m_logger_system = std::make_shared<LogSystem>();
+
         // 初始化默认设置管理器
         m_config_manager = std::make_shared<ConfigManager>();
         m_config_manager->initialize(config_file_path);
-
-        LOG_INFO(m_config_manager->getGlobalRenderingResUrl());
 
         // 初始化视窗子系统
         m_window_system = std::make_shared<WindowSystem>();
